@@ -307,21 +307,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ─── Supabase Config ───
-        // Replace these with your Supabase project credentials
-        const SUPABASE_URL = 'https://lvohxrnftwfxfudvnozm.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_USxkj2v55y3vhxmvOEvfJw_3EVkDMHu';
-
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // Check if already logged in
-        (async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                window.location.href = 'dashboard.html';
-            }
-        })();
-
+        // ─── UI Functions (defined first so buttons always work) ───
         function switchTab(tab) {
             const tabs = document.querySelectorAll('.tab');
             tabs[0].classList.toggle('active', tab === 'login');
@@ -341,8 +327,35 @@
             document.getElementById('message').className = 'message';
         }
 
+        // ─── Supabase Config ───
+        const SUPABASE_URL = 'https://lvohxrnftwfxfudvnozm.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2b2h4cm5mdHdmeGZ1ZHZub3ptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NDY1NDMsImV4cCI6MjA4NzUyMjU0M30.zKes6I6dxT-1uLxhHQykzSHDjhAZXi1SQgu5ylRTLQg';
+
+        let sb = null;
+        try {
+            sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+            console.error('Supabase init failed:', e);
+            showMessage('Authentication service failed to initialize. Check Supabase credentials in console.');
+        }
+
+        // Check if already logged in
+        if (sb) {
+            (async () => {
+                try {
+                    const { data: { session } } = await sb.auth.getSession();
+                    if (session) {
+                        window.location.href = 'dashboard.html';
+                    }
+                } catch (e) {
+                    console.error('Session check failed:', e);
+                }
+            })();
+        }
+
         async function handleLogin(e) {
             e.preventDefault();
+            if (!sb) { showMessage('Auth service not initialized. Check Supabase credentials.'); return; }
             const btn = document.getElementById('loginBtn');
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
@@ -352,7 +365,7 @@
             hideMessage();
 
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                const { data, error } = await sb.auth.signInWithPassword({ email, password });
                 if (error) throw error;
                 window.location.href = 'dashboard.html';
             } catch (err) {
@@ -364,6 +377,7 @@
 
         async function handleSignup(e) {
             e.preventDefault();
+            if (!sb) { showMessage('Auth service not initialized. Check Supabase credentials.'); return; }
             const btn = document.getElementById('signupBtn');
             const email = document.getElementById('signupEmail').value.trim();
             const password = document.getElementById('signupPassword').value;
@@ -379,17 +393,15 @@
             hideMessage();
 
             try {
-                const { data, error } = await supabase.auth.signUp({ email, password });
+                const { data, error } = await sb.auth.signUp({ email, password });
                 if (error) throw error;
 
                 if (data.session) {
-                    // Auto-confirmed, redirect
                     window.location.href = 'dashboard.html';
                 } else {
                     showMessage('Account created! Check your email to confirm, then sign in.', 'success');
                     btn.disabled = false;
                     btn.textContent = 'Create Account →';
-                    // Switch to login tab
                     setTimeout(() => switchTab('login'), 2000);
                 }
             } catch (err) {
