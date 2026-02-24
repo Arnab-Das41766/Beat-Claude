@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaderboard - Beat Claude</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .leaderboard-layout {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .assessment-selector-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .assessment-selector-card label {
+      font-weight: 700;
+      color: var(--text3);
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      text-align: center;
+    }
+
+    .stat-card-val {
+      font-size: 1.75rem;
+      font-weight: 800;
+      margin-bottom: 0.2rem;
+    }
+
+    .stat-card-val.violet {
+      color: var(--gold);
+    }
+
+    .stat-card-val.green {
+      color: #059669;
+    }
+
+    .stat-card-val.yellow {
+      color: #d97706;
+    }
+
+    .stat-card-val.red {
+      color: #dc2626;
+    }
+
+    .stat-card-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Podium */
+    .podium-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      align-items: end;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 600px) {
+      .podium-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .podium-item {
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .podium-item:hover {
+      transform: translateY(-3px);
+    }
+
+    .podium-item.first {
+      border-color: #fbbf24;
+      order: 2;
+    }
+
+    .podium-item.second {
+      border-color: #94a3b8;
+      order: 1;
+    }
+
+    .podium-item.third {
+      border-color: #fb923c;
+      order: 3;
+    }
+
+    .podium-rank-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+
+    .podium-name {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 1.125rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .podium-email {
+      font-size: 0.75rem;
+      color: var(--slate-400);
+      margin-bottom: 0.5rem;
+    }
+
+    .podium-score {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--gold);
+    }
+
+    .podium-bar {
+      height: 8px;
+      border-radius: 4px;
+      background: var(--surface3);
+      margin-top: 1rem;
+      overflow: hidden;
+    }
+
+    .podium-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--gold), var(--gold2));
+      transition: width 0.8s ease;
+    }
+
+    .podium-empty-text {
+      color: var(--slate-300);
+      font-size: 0.875rem;
+      padding: 1rem 0;
+    }
+
+    /* Full table */
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      overflow: hidden;
+    }
+
+    .table-card-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface2);
+    }
+
+    .table-card-title {
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .filter-input {
+      padding: 0.4rem 0.75rem;
+      border: 1px solid var(--slate-200);
+      border-radius: 0.375rem;
+      font-size: 0.85rem;
+      color: var(--slate-700);
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table thead th {
+      background: var(--surface2);
+      padding: 1rem;
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .data-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    .data-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .data-table tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    .data-table td {
+      padding: 1rem;
+      font-size: 0.875rem;
+      color: var(--text);
+      vertical-align: middle;
+    }
+
+    .rank-bubble {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+
+    .rank-bubble.top {
+      background: var(--gold-dim);
+      color: var(--gold);
+      border: 1px solid var(--gold);
+    }
+
+    .rank-bubble.normal {
+      background: var(--surface2);
+      color: var(--text3);
+      border: 1px solid var(--border);
+    }
+
+    .progress-mini {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .progress-mini-bar {
+      width: 60px;
+      height: 6px;
+      background: var(--surface3);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-mini-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold2));
+      border-radius: 3px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--slate-300);
+    }
+
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 0.75rem;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/pages/dashboard.html" class="logo">
+        <div class="logo-icon">⚗</div>
+        <span class="logo-text">Beat <span>Claude</span></span>
+      </a>
+      <div class="nav-links">
+        <span id="userNameDisplay" style="font-size:0.875rem; color: var(--slate-500);"></span>
+        <button class="btn btn-ghost" onclick="handleLogout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="leaderboard-layout">
+    <div class="page-header animate-fade-up">
+      <div>
+        <h1 class="page-title" style="font-family: 'Playfair Display', serif;">🏆 Global Leaderboard</h1>
+        <p class="page-subtitle">Rankings and performance metrics for all candidates</p>
+      </div>
+    </div>
+
+    <!-- Assessment Selector -->
+    <div class="assessment-selector-card animate-fade-up delay-1">
+      <label class="uppercase-label" style="font-size: 0.6875rem;">Select Assessment:</label>
+      <select id="assessmentSelect" class="form-input" style="flex: 1; max-width: 420px; background: var(--surface2);"
+        onchange="loadLeaderboard()">
+        <option value="">-- Choose an evaluation --</option>
+      </select>
+      <div class="flex gap-2">
+        <select id="minScoreFilter" class="form-input" style="width: 140px; background: var(--surface2);"
+          onchange="applyFilter()">
+          <option value="0">Any Score</option>
+          <option value="50">50%+</option>
+          <option value="70">70%+</option>
+          <option value="85">85%+</option>
+        </select>
+        <select id="recFilter" class="form-input" style="width: 140px; background: var(--surface2);"
+          onchange="applyFilter()">
+          <option value="">All Status</option>
+          <option value="ADVANCE">Advance</option>
+          <option value="CONSIDER">Consider</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Stats bar -->
+    <div id="statsBar" class="stats-bar hidden">
+      <div class="stat-card">
+        <div id="totalCandidates" class="stat-card-val violet">0</div>
+        <div class="stat-card-label">Candidates</div>
+      </div>
+      <div class="stat-card">
+        <div id="avgScore" class="stat-card-val violet">0%</div>
+        <div class="stat-card-label">Avg Score</div>
+      </div>
+      <div class="stat-card">
+        <div id="advanceCount" class="stat-card-val green">0</div>
+        <div class="stat-card-label">Advance</div>
+      </div>
+      <div class="stat-card">
+        <div id="considerCount" class="stat-card-val yellow">0</div>
+        <div class="stat-card-label">Consider</div>
+      </div>
+      <div class="stat-card">
+        <div id="rejectCount" class="stat-card-val red">0</div>
+        <div class="stat-card-label">Reject</div>
+      </div>
+    </div>
+
+    <!-- Podium section -->
+    <div id="podiumSection" class="hidden animate-fade-up delay-2" style="margin-bottom: 3rem;">
+      <h2 class="section-title" style="font-family: 'Playfair Display', serif;">🥇 Performance Leaders</h2>
+      <div class="podium-grid">
+        <div class="podium-item second">
+          <span class="podium-rank-icon">🥈</span>
+          <div id="pod2" class="podium-empty-text">Awaiting results...</div>
+        </div>
+        <div class="podium-item first" style="background: var(--gold-glow); border-color: var(--gold);">
+          <span class="podium-rank-icon">🥇</span>
+          <div id="pod1" class="podium-empty-text">Awaiting results...</div>
+        </div>
+        <div class="podium-item third">
+          <span class="podium-rank-icon">🥉</span>
+          <div id="pod3" class="podium-empty-text">Awaiting results...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full leaderboard table -->
+    <div class="table-card" id="tableCard">
+      <div class="table-card-header">
+        <span class="table-card-title">Full Rankings</span>
+        <input type="text" id="searchInput" class="filter-input" placeholder="Search by name/email..."
+          oninput="applyFilter()">
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Candidate</th>
+              <th>Score</th>
+              <th>Percentile</th>
+              <th>Status</th>
+              <th>Submitted</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody"></tbody>
+        </table>
+        <div id="emptyState" class="empty-state">
+          <div class="empty-state-icon">🏆</div>
+          <p>Select an assessment to see results</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    let allEntries = [];
+    let leaderboardData = {};
+
+    async function init() {
+      const user = await requireAuth();
+      if (!user) return;
+      document.getElementById('userNameDisplay').textContent = user.full_name || user.email;
+
+      // Check for pre-selected assessment
+      const params = new URLSearchParams(window.location.search);
+      const preselect = params.get('id');
+
+      await loadAssessments(preselect);
+    }
+
+    async function loadAssessments(preselectId) {
+      try {
+        const data = await api.get('/assessments');
+        const assessments = data.assessments || [];
+        const select = document.getElementById('assessmentSelect');
+
+        assessments.forEach(a => {
+          const opt = document.createElement('option');
+          opt.value = a.id;
+          opt.textContent = a.title;
+          if (preselectId && parseInt(preselectId) === a.id) opt.selected = true;
+          select.appendChild(opt);
+        });
+
+        if (preselectId) await loadLeaderboard();
+      } catch (err) {
+        console.error('Failed to load assessments:', err);
+      }
+    }
+
+    async function loadLeaderboard() {
+      const assessmentId = document.getElementById('assessmentSelect').value;
+      if (!assessmentId) {
+        allEntries = [];
+        renderTable([]);
+        document.getElementById('statsBar').classList.add('hidden');
+        document.getElementById('podiumSection').classList.add('hidden');
+        return;
+      }
+
+      try {
+        const data = await api.get(`/assessments/${assessmentId}/leaderboard`);
+        leaderboardData = data;
+        allEntries = data.entries || [];
+
+        // Stats
+        document.getElementById('statsBar').classList.remove('hidden');
+        document.getElementById('totalCandidates').textContent = data.total_candidates || 0;
+        document.getElementById('avgScore').textContent = (data.average_score || 0).toFixed(1) + '%';
+        document.getElementById('advanceCount').textContent = data.advance_count || 0;
+        document.getElementById('considerCount').textContent = data.consider_count || 0;
+        document.getElementById('rejectCount').textContent = data.reject_count || 0;
+
+        // Podium
+        if (allEntries.length > 0) {
+          document.getElementById('podiumSection').classList.remove('hidden');
+          renderPodium(allEntries.slice(0, 3));
+        }
+
+        applyFilter();
+      } catch (err) {
+        showToast('Failed to load leaderboard. ' + (err.message || ''), 'error');
+      }
+    }
+
+    function renderPodium(top3) {
+      ['pod1', 'pod2', 'pod3'].forEach((id, i) => {
+        const el = document.getElementById(id);
+        const c = top3[i];
+        if (c) {
+          const rec = (c.recommendation || 'PENDING').toLowerCase();
+          el.innerHTML = `
+            <div class="podium-name font-serif" style="font-size: 1.35rem;">${c.full_name}</div>
+            <div class="podium-email uppercase-label" style="font-size: 0.625rem; margin-bottom: 0.75rem;">${c.email}</div>
+            <div class="podium-score mono" style="font-size: 1.75rem;">${(c.percentage || 0).toFixed(1)}%</div>
+            <div style="margin-top: 1rem;"><span class="badge badge-${rec}">${c.recommendation || 'PENDING'}</span></div>
+            <div class="podium-bar"><div class="podium-bar-fill" style="width: ${c.percentage || 0}%"></div></div>
+          `;
+        } else {
+          el.innerHTML = '<span class="podium-empty-text">Position VACANT</span>';
+        }
+      });
+    }
+
+    function applyFilter() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const minScore = parseFloat(document.getElementById('minScoreFilter').value) || 0;
+      const rec = document.getElementById('recFilter').value;
+
+      let filtered = allEntries.filter(e => {
+        const matchSearch = !search || e.full_name.toLowerCase().includes(search) || e.email.toLowerCase().includes(search);
+        const matchScore = (e.percentage || 0) >= minScore;
+        const matchRec = !rec || e.recommendation === rec;
+        return matchSearch && matchScore && matchRec;
+      });
+
+      renderTable(filtered);
+    }
+
+    function renderTable(entries) {
+      const tbody = document.getElementById('leaderboardBody');
+      const empty = document.getElementById('emptyState');
+
+      if (entries.length === 0) {
+        tbody.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+
+      tbody.innerHTML = entries.map((e, i) => {
+        const rank = e.rank || (i + 1);
+        const isTop = rank <= 3;
+        const rec = (e.recommendation || 'PENDING').toLowerCase();
+        const pct = (e.percentage || 0).toFixed(1);
+
+        return `
+          <tr class="animate-fade-up" style="animation-delay: ${0.05 * i}s">
+            <td>
+              <div class="rank-bubble mono ${isTop ? 'top' : 'normal'}">${rank}</div>
+            </td>
+            <td>
+              <div class="font-serif" style="font-size: 1.1rem; color: var(--text);">${e.full_name}</div>
+              <div class="uppercase-label" style="font-size: 0.625rem; font-weight: 500;">${e.email}</div>
+            </td>
+            <td>
+              <div class="progress-mini">
+                <span class="mono" style="font-weight: 700; color: var(--text); width: 45px;">${pct}%</span>
+                <div class="progress-mini-bar">
+                  <div class="progress-mini-fill" style="width: ${e.percentage || 0}%"></div>
+                </div>
+              </div>
+            </td>
+            <td class="mono">${e.percentile != null ? e.percentile.toFixed(1) + '%' : '--'}</td>
+            <td><span class="badge badge-${rec}">${e.recommendation || 'PENDING'}</span></td>
+            <td class="mono" style="color: var(--text3); font-size: 0.75rem;">${e.submitted_at ? new Date(e.submitted_at).toLocaleDateString() : '--'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    init();
+  </script>
+</body>
+
+</html>

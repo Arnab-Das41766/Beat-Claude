@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assessment Submitted - Beat Claude</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <div class="logo">
+        <div class="logo-icon">⚗</div>
+        <span class="logo-text">Beat <span>Claude</span></span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container" style="padding: 4rem 1rem; max-width: 600px;">
+    <div class="card text-center" style="padding: 3rem 2rem;">
+      <!-- Success Icon -->
+      <div
+        style="width: 80px; height: 80px; background: var(--teal-dim); border: 2px solid var(--teal); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem; color: var(--teal); font-size: 2.5rem;">
+        ✓
+      </div>
+
+      <h1 class="page-title" style="margin-bottom: 0.5rem;">Assessment Submitted!</h1>
+      <p style="color: var(--text2); margin-bottom: 2.5rem;">Thank you for completing the assessment. Your responses
+        have been recorded.</p>
+
+      <!-- Score Card -->
+      <div
+        style="background: var(--surface2); border: 1px solid var(--border); border-radius: 1.25rem; padding: 2.5rem; margin-bottom: 2.5rem;">
+        <p
+          style="color: var(--text3); font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+          Your Score</p>
+        <div
+          style="font-size: 4rem; font-weight: 800; color: var(--gold); letter-spacing: -0.02em; margin-bottom: 1.25rem;"
+          id="scoreDisplay">--</div>
+        <div id="recommendationBadge"></div>
+      </div>
+
+      <!-- Message -->
+      <div id="resultMessage"
+        style="background: var(--surface3); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 2.5rem; color: var(--text); font-weight: 500; font-size: 0.9375rem;">
+        <!-- Dynamic message -->
+      </div>
+
+      <!-- Next Steps -->
+      <div style="margin-bottom: 3rem;">
+        <p
+          style="color: var(--text3); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1.5rem;">
+          What happens next?</p>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; font-size: 0.8125rem;">
+          <div
+            style="background: var(--surface2); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.25rem;">
+            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🤖</div>
+            <p style="font-weight: 700; color: var(--text); margin-bottom: 0.25rem;">AI Analysis</p>
+            <p style="color: var(--text2);">Responses reviewed</p>
+          </div>
+          <div
+            style="background: var(--surface2); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.25rem;">
+            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">👥</div>
+            <p style="font-weight: 700; color: var(--text); margin-bottom: 0.25rem;">Team Evaluation</p>
+            <p style="color: var(--text2);">Recruiter check</p>
+          </div>
+          <div
+            style="background: var(--surface2); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.25rem;">
+            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📧</div>
+            <p style="font-weight: 700; color: var(--text); margin-bottom: 0.25rem;">Follow Up</p>
+            <p style="color: var(--text2);">Get notified</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Close Button -->
+      <button onclick="window.close()" class="btn btn-primary btn-lg" style="width: 100%;">
+        Close Window
+      </button>
+      <p style="font-size: 0.75rem; color: var(--text3); margin-top: 1rem;">You can now safely close this window</p>
+    </div>
+  </main>
+
+  <script src="/js/app.js"></script>
+  <script>
+    function init() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const score = parseFloat(urlParams.get('score')) || 0;
+      const recommendation = urlParams.get('recommendation') || 'PENDING';
+
+      // Display score
+      document.getElementById('scoreDisplay').textContent = formatPercent(score);
+
+      // Display recommendation
+      const recLabel = recommendation.toUpperCase();
+      const badgeClass = recLabel.toLowerCase();
+      document.getElementById('recommendationBadge').innerHTML = `
+        <span class="badge badge-${badgeClass}" style="padding: 0.5rem 1.25rem; font-size: 0.875rem;">${recLabel}</span>
+      `;
+
+      // Set message based on recommendation
+      const messageDiv = document.getElementById('resultMessage');
+      let message = '';
+
+      switch (recLabel) {
+        case 'ADVANCE':
+          message = '🎉 Congratulations! Your performance was excellent. You are a strong candidate for this position.';
+          break;
+        case 'CONSIDER':
+          message = '✅ Good job! Your performance meets the requirements. The recruiting team will review your application.';
+          break;
+        case 'REJECT':
+          message = 'Thank you for your time. Unfortunately, your performance did not meet the requirements for this position.';
+          break;
+        default:
+          message = 'Your assessment is being processed. You will receive feedback soon.';
+      }
+
+      messageDiv.textContent = message;
+
+      // Clear any remaining session data
+      localStorage.removeItem('candidateSession');
+    }
+
+    init();
+  </script>
+</body>
+
+</html>

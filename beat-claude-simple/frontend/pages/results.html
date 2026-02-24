@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Results - Beat Claude</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/pages/dashboard.html" class="logo">
+        <div class="logo-icon">⚗</div>
+        <span class="logo-text">Beat <span>Claude</span></span>
+      </a>
+      <div class="nav-links">
+        <button class="btn btn-ghost" onclick="handleLogout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container" style="padding: 2rem 1rem;">
+    <div id="loadingState">
+      <div class="loading">
+        <div class="spinner"></div>
+      </div>
+    </div>
+
+    <div id="contentState" class="hidden">
+      <!-- Header -->
+      <div class="results-header animate-fade-up">
+        <div>
+          <h1 class="page-title" id="assessmentTitle"
+            style="color: var(--text); font-family: 'Playfair Display', serif;"></h1>
+          <p class="page-subtitle" style="color: var(--text2);">Intelligence report and candidate rankings</p>
+        </div>
+        <div class="flex gap-2">
+          <a id="leaderboardLink" href="/pages/leaderboard.html" class="btn btn-secondary">🏆 Leaderboard</a>
+          <button class="btn btn-secondary" onclick="exportResults()">📥 Export</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <!-- Filters -->
+      <div class="filter-bar animate-fade-up delay-2">
+        <input type="text" id="searchInput" class="form-input search-input" placeholder="Filter by name or email..."
+          oninput="filterResults()">
+        <button class="filter-btn active" onclick="setFilter('all')" data-filter="all">All Entries</button>
+        <button class="filter-btn" onclick="setFilter('ADVANCE')" data-filter="ADVANCE">Advance</button>
+        <button class="filter-btn" onclick="setFilter('CONSIDER')" data-filter="CONSIDER">Consider</button>
+        <button class="filter-btn" onclick="setFilter('REJECT')" data-filter="REJECT">Reject</button>
+      </div>
+
+      <!-- Results Table -->
+      <div class="card">
+        <div class="card-body">
+          <div class="table-container">
+            <table class="table" id="resultsTable">
+              <thead>
+                <tr class="uppercase-label" style="font-size: 0.6875rem;">
+                  <th>Rank</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Score</th>
+                  <th>%</th>
+                  <th>Recommendation</th>
+                  <th>Submitted</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/app.js"></script>
+  <script>
+    (async () => {
+      const user = await requireAuth();
+      if (!user) return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const assessmentId = urlParams.get('id');
+
+      if (!assessmentId) {
+        navigateTo('/pages/dashboard.html');
+        return;
+      }
+
+      let allCandidates = [];
+      let currentFilter = 'all';
+
+      async function loadResults() {
+        try {
+          const [resultsData, leaderboardData] = await Promise.all([
+            results.get(assessmentId),
+            results.leaderboard(assessmentId)
+          ]);
+
+          allCandidates = resultsData.candidates || [];
+
+          $('#assessmentTitle').textContent = leaderboardData.assessment_title;
+          document.getElementById('leaderboardLink').href = `/pages/leaderboard.html?id=${assessmentId}`;
+
+          // Stats
+          const stats = leaderboardData;
+          $('#statsGrid').innerHTML = `
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label uppercase-label">Total Candidates</span>
+              <span class="stat-icon" style="opacity: 0.5;">👥</span>
+            </div>
+            <div class="stat-value font-serif">${stats.total_candidates}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label uppercase-label">Average Score</span>
+              <span class="stat-icon" style="opacity: 0.5;">📊</span>
+            </div>
+            <div class="stat-value font-serif text-gold">${stats.average_score}%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label uppercase-label">Advance</span>
+              <span class="stat-icon" style="color: var(--teal);">●</span>
+            </div>
+            <div class="stat-value font-serif" style="color: var(--teal);">${stats.advance_count}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label uppercase-label">Consider</span>
+              <span class="stat-icon" style="color: var(--gold);">●</span>
+            </div>
+            <div class="stat-value font-serif" style="color: var(--gold);">${stats.consider_count}</div>
+          </div>
+        `;
+
+          renderTable();
+
+          hide($('#loadingState'));
+          show($('#contentState'));
+        } catch (error) {
+          console.error('Error loading results:', error);
+          navigateTo('/pages/dashboard.html');
+        }
+      }
+
+      function renderTable() {
+        const searchTerm = $('#searchInput').value.toLowerCase();
+
+        let filtered = allCandidates.filter(c => {
+          const matchesSearch = c.full_name.toLowerCase().includes(searchTerm) ||
+            c.email.toLowerCase().includes(searchTerm);
+          const matchesFilter = currentFilter === 'all' || c.recommendation === currentFilter;
+          return matchesSearch && matchesFilter;
+        });
+
+        const tbody = $('#tableBody');
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="9" class="text-center" style="padding: 2rem; color: var(--text3);">No candidates found</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = filtered.map(c => `
+        <tr>
+          <td>
+            ${c.rank <= 3 ? `
+              <div class="rank-badge rank-${c.rank}">${c.rank}</div>
+            ` : c.rank}
+          </td>
+          <td><strong>${c.full_name}</strong></td>
+          <td>${c.email}</td>
+          <td>${c.phone || '-'}</td>
+          <td>${c.total_score?.toFixed(1) || 0}</td>
+          <td>
+            <div class="progress-bar" style="width: 60px; display: inline-block; vertical-align: middle;">
+              <div class="progress-fill ${c.percentage >= 80 ? 'high' : c.percentage >= 50 ? 'medium' : 'low'}" style="width: ${c.percentage || 0}%"></div>
+            </div>
+            <span style="margin-left: 0.5rem; font-size: 0.875rem;">${(c.percentage || 0).toFixed(1)}%</span>
+          </td>
+          <td><span class="badge badge-${c.recommendation?.toLowerCase()}">${c.recommendation || 'PENDING'}</span></td>
+          <td>${c.submitted_at ? new Date(c.submitted_at).toLocaleDateString() : '-'}</td>
+          <td><a href="/pages/candidate-details.html?id=${c.id}" class="btn btn-secondary btn-sm">View →</a></td>
+        </tr>
+      `).join('');
+      }
+
+      function filterResults() {
+        renderTable();
+      }
+
+      function setFilter(filter) {
+        currentFilter = filter;
+        $$('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        $(`[data-filter="${filter}"]`).classList.add('active');
+        renderTable();
+      }
+
+      function exportResults() {
+        // Use backend CSV export endpoint
+        const link = document.createElement('a');
+        link.href = `${API_URL}/assessments/${assessmentId}/results/export`;
+        link.target = '_blank';
+        link.download = `results-${assessmentId}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      loadResults();
+    })();
+  </script>
+</body>
+
+</html>

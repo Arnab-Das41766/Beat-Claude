@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assessment - Beat Claude</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .assessment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .assessment-title {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      margin: 0;
+    }
+
+    .assessment-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .info-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      border-radius: 12px;
+      transition: var(--transition);
+    }
+
+    .info-item:hover {
+      border-color: var(--border2);
+      transform: translateY(-2px);
+    }
+
+    .info-label {
+      font-size: 0.6875rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.75rem;
+    }
+
+    .info-value {
+      font-weight: 500;
+    }
+
+    .skills-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .skill-tag {
+      padding: 0.35rem 0.875rem;
+      background: var(--gold-dim);
+      border: 1px solid rgba(212, 168, 71, 0.2);
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .question-card {
+      display: flex;
+      gap: 2rem;
+      padding: 2.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      transition: var(--transition);
+    }
+
+    .question-card:hover {
+      border-color: var(--border2);
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+    }
+
+    .question-number {
+      width: 40px;
+      height: 40px;
+      background: var(--gold-dim);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: var(--gold);
+      flex-shrink: 0;
+    }
+
+    .question-content {
+      flex: 1;
+    }
+
+    .question-meta {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .question-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 2rem;
+      line-height: 1.4;
+    }
+
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .option-item {
+      padding: 1rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      font-size: 0.9375rem;
+      color: var(--text2);
+    }
+
+    .share-box {
+      background: var(--gold-glow);
+      border: 1px solid rgba(212, 168, 71, 0.2);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .share-box h3 {
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .share-box p {
+      color: var(--text2);
+      font-size: 0.9375rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .share-link {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .share-link input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 0.625rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      color: var(--gold);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/pages/dashboard.html" class="logo">
+        <div class="logo-icon">⚗</div>
+        <span class="logo-text">Beat <span>Claude</span></span>
+      </a>
+      <div class="nav-links">
+        <button class="btn btn-ghost" onclick="handleLogout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container" style="padding: 2rem 1rem;">
+    <div id="notificationContainer"></div>
+
+    <div id="loadingState">
+      <div class="loading">
+        <div class="spinner"></div>
+      </div>
+    </div>
+
+    <div id="contentState" class="hidden">
+      <!-- Header -->
+      <div class="assessment-header animate-fade-up">
+        <div class="assessment-title">
+          <h1 class="page-title" id="assessmentTitle"></h1>
+          <span id="statusBadge"></span>
+        </div>
+        <div class="assessment-actions" id="actionButtons"></div>
+      </div>
+
+      <!-- Share Box (if active) -->
+      <div id="shareBox" class="share-box hidden">
+        <h3>🎉 Assessment is Active</h3>
+        <p>Candidates can now take this assessment. Share the link below:</p>
+        <div class="share-link">
+          <input type="text" id="shareUrl" readonly>
+          <button class="btn btn-secondary btn-sm" onclick="copyLink()">Copy</button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs animate-fade-up delay-1" style="margin-bottom: 3rem;">
+        <div class="tab active" onclick="showTab('questions')">Assessment Questions</div>
+        <div class="tab" onclick="showTab('details')">Job Breakdown</div>
+        <div class="tab" id="resultsTab" onclick="showTab('results')">Candidate Results</div>
+      </div>
+
+      <!-- Questions Tab -->
+      <div id="questionsTab" class="tab-content">
+        <div id="questionsList"></div>
+      </div>
+
+      <!-- Details Tab -->
+      <div id="detailsTab" class="tab-content hidden">
+        <div class="card">
+          <div class="card-body">
+            <div class="info-grid" id="detailsGrid"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Tab -->
+      <div id="resultsTabContent" class="tab-content hidden">
+        <div id="resultsContent"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Custom Confirmation Modal -->
+  <div id="confirmModal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="confirmTitle">Confirm Action</h3>
+      </div>
+      <div class="modal-body">
+        <p id="confirmMessage"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="confirmCancel">Cancel</button>
+        <button class="btn btn-primary" id="confirmOk">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    // Check auth
+    requireAuth();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const assessmentId = urlParams.get('id');
+
+    if (!assessmentId) {
+      navigateTo('/pages/dashboard.html');
+    }
+
+    let assessmentData = null;
+
+    async function loadAssessment() {
+      try {
+        const data = await assessments.get(assessmentId);
+
+        if (!data.success) {
+          navigateTo('/pages/dashboard.html');
+          return;
+        }
+
+        assessmentData = data.assessment;
+        renderAssessment();
+
+        hide($('#loadingState'));
+        show($('#contentState'));
+      } catch (error) {
+        console.error('Error loading assessment:', error);
+        navigateTo('/pages/dashboard.html');
+      }
+    }
+
+    function renderAssessment() {
+      const a = assessmentData;
+
+      // Title and status
+      $('#assessmentTitle').textContent = a.title;
+      $('#statusBadge').innerHTML = `<span class="badge badge-${a.status}">${a.status}</span>`;
+
+      // Action buttons
+      const actions = $('#actionButtons');
+      actions.innerHTML = '';
+
+      if (a.status === 'draft') {
+        actions.innerHTML = `<button class="btn btn-primary" onclick="publishAssessment()">📢 Publish</button>`;
+      } else if (a.status === 'active') {
+        actions.innerHTML = `
+          <a href="/pages/results.html?id=${a.id}" class="btn btn-primary">📊 Results</a>
+          <button class="btn btn-danger" onclick="closeAssessment()">🔒 Close</button>
+        `;
+      }
+
+      // Share box
+      if (a.status === 'active') {
+        show($('#shareBox'));
+        $('#shareUrl').value = `${window.location.origin}/pages/candidate-register.html?id=${a.id}`;
+      }
+
+      // Show/hide results tab
+      if (a.status === 'draft') {
+        hide($('#resultsTab'));
+      }
+
+      // Questions
+      renderQuestions(a.questions);
+
+      // Details
+      renderDetails(a);
+    }
+
+    function renderQuestions(questions) {
+      const container = $('#questionsList');
+
+      container.innerHTML = questions.map((q, i) => `
+        <div class="question-card animate-fade-up" style="animation-delay: ${0.1 * (i + 2)}s">
+          <div class="question-number mono">${(i + 1).toString().padStart(2, '0')}</div>
+          <div class="question-content">
+            <div class="question-meta">
+              <span class="badge badge-draft uppercase-label" style="font-family: inherit;">${q.type}</span>
+              <span class="badge badge-draft uppercase-label" style="font-family: inherit;">${q.skill}</span>
+              <span class="mono" style="font-size: 0.75rem; color: var(--text3); border-left: 1px solid var(--border); padding-left: 1rem; margin-left: 0.5rem;">${q.max_score} POINTS</span>
+            </div>
+            <div class="question-text">${q.question_text}</div>
+            ${q.options ? `
+              <div class="options-list">
+                ${JSON.parse(q.options).map((opt, j) => `
+                  <div class="option-item">
+                    <span class="mono" style="color: var(--gold); margin-right: 0.75rem;">${String.fromCharCode(65 + j)}.</span> ${opt.replace(/^[A-D]\.\s*/, '')}
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderDetails(a) {
+      const container = $('#detailsGrid');
+
+      const parseJson = (str) => {
+        try { return JSON.parse(str); } catch { return []; }
+      };
+
+      const renderSkills = (skills) => {
+        const list = parseJson(skills);
+        if (list.length === 0) return '<span style="color: var(--text3);">None specified</span>';
+        return `<div class="skills-list">${list.map(s => `<span class="skill-tag">${s}</span>`).join('')}</div>`;
+      };
+
+      container.innerHTML = `
+        <div class="info-item animate-fade-up">
+          <div class="info-label">Role Title</div>
+          <div class="info-value font-serif" style="font-size: 1.25rem;">${a.role_title}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Seniority Level</div>
+          <div class="info-value">${a.seniority_level || 'Not specified'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Department</div>
+          <div class="info-value">${a.department || 'Not specified'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Domain</div>
+          <div class="info-value">${a.domain || 'Not specified'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Experience Required</div>
+          <div class="info-value">${a.experience || 'Not specified'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Education</div>
+          <div class="info-value">${a.education || 'Not specified'}</div>
+        </div>
+        <div class="info-item" style="grid-column: 1 / -1;">
+          <div class="info-label">Required Skills</div>
+          ${renderSkills(a.required_skills)}
+        </div>
+        <div class="info-item" style="grid-column: 1 / -1;">
+          <div class="info-label">Preferred Skills</div>
+          ${renderSkills(a.preferred_skills)}
+        </div>
+        <div class="info-item" style="grid-column: 1 / -1;">
+          <div class="info-label">Tools & Technologies</div>
+          ${renderSkills(a.tools)}
+        </div>
+      `;
+    }
+
+    function showTab(tabName) {
+      // Hide all tabs
+      $$('.tab-content').forEach(el => hide(el));
+      $$('.tab').forEach(el => el.classList.remove('active'));
+
+      // Show selected tab
+      show($(`#${tabName}Tab` + (tabName === 'results' ? 'Content' : '')));
+      event.target.classList.add('active');
+
+      // Load results if needed
+      if (tabName === 'results') {
+        loadResults();
+      }
+    }
+
+    async function loadResults() {
+      const container = $('#resultsContent');
+      container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+      try {
+        const data = await results.get(assessmentId);
+
+        if (data.candidates.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">👥</div>
+              <h3 class="empty-title">No candidates yet</h3>
+              <p class="empty-text">Share the assessment link to get candidates</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Score</th>
+                  <th>%</th>
+                  <th>Recommendation</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.candidates.map(c => `
+                  <tr>
+                    <td>${c.rank || '-'}</td>
+                    <td><strong>${c.full_name}</strong></td>
+                    <td>${c.email}</td>
+                    <td>${c.total_score?.toFixed(1) || 0}/${c.max_score || 0}</td>
+                    <td>
+                      <div class="progress-bar" style="width: 60px; display: inline-block; vertical-align: middle;">
+                        <div class="progress-fill ${c.percentage >= 80 ? 'high' : c.percentage >= 50 ? 'medium' : 'low'}" style="width: ${c.percentage || 0}%"></div>
+                      </div>
+                      <span style="margin-left: 0.5rem; font-size: 0.875rem;">${(c.percentage || 0).toFixed(1)}%</span>
+                    </td>
+                    <td><span class="badge badge-${c.recommendation?.toLowerCase()}">${c.recommendation || 'PENDING'}</span></td>
+                    <td><a href="/pages/candidate-details.html?id=${c.id}" class="btn btn-secondary btn-sm">View</a></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } catch (error) {
+        container.innerHTML = '<p class="text-center" style="color: var(--red-500);">Failed to load results</p>';
+      }
+    }
+
+    function showNotification(message, type = 'success') {
+      const container = $('#notificationContainer');
+      container.innerHTML = `
+        <div class="alert alert-${type} mb-4">
+          ${message}
+        </div>
+      `;
+      setTimeout(() => {
+        container.innerHTML = '';
+      }, 5000);
+    }
+
+    function showConfirm(title, message, onConfirm) {
+      const modal = $('#confirmModal');
+      const titleEl = $('#confirmTitle');
+      const messageEl = $('#confirmMessage');
+      const cancelBtn = $('#confirmCancel');
+      const okBtn = $('#confirmOk');
+
+      titleEl.textContent = title;
+      messageEl.textContent = message;
+      show(modal);
+
+      const close = () => hide(modal);
+
+      cancelBtn.onclick = close;
+      okBtn.onclick = () => {
+        close();
+        onConfirm();
+      };
+    }
+
+    async function publishAssessment() {
+      showConfirm(
+        'Publish Assessment',
+        'Are you sure you want to publish this assessment? Candidates will be able to take it immediately.',
+        async () => {
+          try {
+            await assessments.publish(assessmentId);
+
+            // Generate link and copy to clipboard
+            const link = `${window.location.origin}/pages/candidate-register.html?id=${assessmentId}`;
+            const tempInput = document.createElement('input');
+            tempInput.value = link;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            showNotification('🎉 Assessment published and link copied! Redirecting to dashboard...');
+
+            // Redirect after a short delay so they can see the notification
+            setTimeout(() => {
+              navigateTo('/pages/dashboard.html');
+            }, 1500);
+          } catch (error) {
+            showNotification('Failed to publish assessment', 'error');
+          }
+        }
+      );
+    }
+
+    async function closeAssessment() {
+      showConfirm(
+        'Close Assessment',
+        'Are you sure you want to close this assessment? No new candidates will be able to register.',
+        async () => {
+          try {
+            await assessments.close(assessmentId);
+            showNotification('Assessment closed successfully');
+            loadAssessment();
+          } catch (error) {
+            showNotification('Failed to close assessment', 'error');
+          }
+        }
+      );
+    }
+
+    function copyLink() {
+      const input = $('#shareUrl');
+      input.select();
+      document.execCommand('copy');
+      showNotification('Link copied to clipboard!');
+    }
+
+    // Load on page load
+    loadAssessment();
+  </script>
+</body>
+
+</html>

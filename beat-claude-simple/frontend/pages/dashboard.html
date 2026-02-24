@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Beat Claude</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/pages/dashboard.html" class="logo">
+        <div class="logo-icon">⚗</div>
+        <span class="logo-text">Beat <span>Claude</span></span>
+      </a>
+      <div class="nav-links">
+        <span id="userName" style="color: var(--text2); font-size: 0.875rem;"></span>
+        <button class="btn btn-ghost" onclick="handleLogout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container" style="padding: 2rem 1rem;">
+    <!-- Page Header -->
+    <div class="page-header animate-fade-up">
+      <h1 class="page-title" style="font-family: 'Playfair Display', serif;">Recruiter Dashboard</h1>
+      <p class="page-subtitle">Track and manage your AI-powered evaluation pipeline</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid animate-fade-up delay-1" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Assessments</span>
+          <span class="stat-icon" style="opacity: 0.5;">📄</span>
+        </div>
+        <div class="stat-value" id="totalAssessments">--</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Active Now</span>
+          <span class="stat-icon" style="color: var(--teal);">●</span>
+        </div>
+        <div class="stat-value" id="activeAssessments">--</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Candidates</span>
+          <span class="stat-icon" style="opacity: 0.5;">👥</span>
+        </div>
+        <div class="stat-value" id="totalCandidates">--</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Avg. Performance</span>
+          <span class="stat-icon" style="color: var(--gold);">⚡</span>
+        </div>
+        <div class="stat-value" id="averageScore">--</div>
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="flex justify-between items-center mb-8 animate-fade-up delay-2">
+      <h2 class="section-title" style="margin: 0; font-family: 'Playfair Display', serif;">Active Assessments</h2>
+      <a href="/pages/create-assessment.html" class="btn btn-primary">
+        <span>+</span> Create Assessment
+      </a>
+    </div>
+
+    <!-- Recent Assessments List -->
+    <div class="animate-fade-up delay-3">
+      <div id="assessmentsContainer">
+        <div class="loading">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/app.js"></script>
+  <script>
+    // Check auth
+    requireAuth().then(user => {
+      if (user) {
+        $('#userName').textContent = user.full_name;
+        loadDashboard();
+      }
+    });
+
+    async function loadDashboard() {
+      // Load stats independently — don't let a stats error block assessments
+      try {
+        const statsData = await dashboard.get();
+        if (statsData && statsData.stats) {
+          const stats = statsData.stats;
+          $('#totalAssessments').textContent = stats.total_assessments ?? '-';
+          $('#activeAssessments').textContent = stats.active_assessments ?? '-';
+          $('#totalCandidates').textContent = stats.total_candidates ?? '-';
+          $('#averageScore').textContent = (stats.average_score ?? 0) + '%';
+        }
+      } catch (statsErr) {
+        console.warn('Stats load failed:', statsErr);
+        // Non-fatal: leave stats as '-'
+      }
+
+      // Always load assessments list (this is the primary content)
+      try {
+        const assessmentsData = await assessments.list();
+        renderAssessments(assessmentsData.assessments || []);
+      } catch (err) {
+        console.error('Error loading assessments:', err);
+        $('#assessmentsContainer').innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">⚠️</div>
+            <h3 class="empty-title">Failed to load assessments</h3>
+            <p class="empty-text">${err.message || 'Please check your connection and try again.'}</p>
+            <button class="btn btn-primary" onclick="loadDashboard()">Retry</button>
+          </div>
+        `;
+      }
+    }
+
+    function renderAssessments(assessments) {
+      const container = $('#assessmentsContainer');
+
+      if (assessments.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📄</div>
+            <h3 class="empty-title">No assessments yet</h3>
+            <p class="empty-text">Create your first assessment to get started</p>
+            <a href="/pages/create-assessment.html" class="btn btn-primary">Create Assessment</a>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = assessments.map((a, i) => `
+        <div class="card mb-4 animate-fade-up" style="animation-delay: ${0.1 * (i + 4)}s">
+          <div class="card-body" style="padding: 1.5rem 2rem;">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-6">
+                <div style="width: 48px; height: 48px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                  ${a.status === 'active' ? '🟢' : '📄'}
+                </div>
+                <div>
+                  <h3 style="font-family: 'Playfair Display', serif; font-size: 1.35rem; margin-bottom: 0.25rem;">${a.title}</h3>
+                  <div class="flex items-center gap-2" style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">
+                    <span>${a.role_title}</span>
+                    <span>•</span>
+                    <span>${a.candidate_count || 0} candidates</span>
+                    <span>•</span>
+                    <span>${a.duration_minutes}m</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-4">
+                <span class="badge badge-${a.status}">${a.status}</span>
+                <div class="flex gap-2">
+                  <a href="/pages/assessment.html?id=${a.id}" class="btn btn-secondary btn-sm">Manage</a>
+                  ${a.status === 'active' ? `
+                    <a href="/pages/results.html?id=${a.id}" class="btn btn-primary btn-sm">Results</a>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function copyAssessmentLink(id) {
+      const link = `${window.location.origin}/pages/candidate-register.html?id=${id}`;
+      const tempInput = document.createElement('input');
+      tempInput.value = link;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      alert('Link copied to clipboard!');
+    }
+  </script>
+</body>
+
+</html>

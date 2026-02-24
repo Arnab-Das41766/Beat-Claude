@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Candidate Details - Beat Claude</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .details-layout {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--slate-500);
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+      cursor: pointer;
+      transition: color 0.2s;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+
+    .back-link:hover {
+      color: var(--gold);
+    }
+
+    .candidate-header-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .candidate-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--gold-dim);
+      border: 2px solid var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold);
+      font-size: 1.75rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .candidate-info {
+      flex: 1;
+    }
+
+    .candidate-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .candidate-email {
+      color: var(--slate-500);
+      font-size: 0.875rem;
+      margin-top: 0.2rem;
+    }
+
+    .candidate-phone {
+      color: var(--slate-400);
+      font-size: 0.8rem;
+    }
+
+    .candidate-score-block {
+      text-align: right;
+    }
+
+    .big-score {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: -0.02em;
+    }
+
+    .score-denom {
+      font-size: 1rem;
+      color: var(--slate-400);
+    }
+
+    .detail-sections {
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    .detail-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 2rem;
+    }
+
+    .detail-card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--slate-800);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .score-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      text-align: center;
+    }
+
+    .score-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .score-value.violet {
+      color: var(--gold);
+    }
+
+    .score-value.indigo {
+      color: var(--gold2);
+    }
+
+    .score-value.green {
+      color: #059669;
+    }
+
+    .score-value.orange {
+      color: #d97706;
+    }
+
+    .score-item-label {
+      font-size: 0.75rem;
+      color: var(--slate-500);
+      margin-top: 0.25rem;
+    }
+
+    .assessment-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .assessment-item label {
+      font-size: 0.75rem;
+      color: var(--slate-500);
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .assessment-item span {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* Responses */
+    .response-item {
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      background: var(--surface);
+    }
+
+    .response-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .response-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .response-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .q-num-label {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 0.9375rem;
+    }
+
+    .question-type-pill {
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .pill-mcq {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .pill-short_answer {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .pill-scenario {
+      background: #ede9fe;
+      color: #5b21b6;
+    }
+
+    .score-pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 0.375rem;
+    }
+
+    .score-pill.high {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .score-pill.mid {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .score-pill.low {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .question-text-r {
+      font-size: 1rem;
+      color: var(--text);
+      margin-bottom: 1rem;
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .answer-block {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .answer-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--slate-400);
+      margin-bottom: 0.25rem;
+      font-weight: 600;
+    }
+
+    .answer-text {
+      font-size: 0.9375rem;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .ai-feedback-block {
+      background: var(--gold-glow);
+      border: 1px solid rgba(212, 168, 71, 0.2);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+    }
+
+    .ai-feedback-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .ai-reasoning {
+      font-size: 0.9375rem;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+      line-height: 1.6;
+    }
+
+    .ai-lists {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    @media (max-width: 480px) {
+      .ai-lists {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .ai-list-header {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+    }
+
+    .ai-list-header.strengths {
+      color: #059669;
+    }
+
+    .ai-list-header.gaps {
+      color: #dc2626;
+    }
+
+    .ai-list li {
+      font-size: 0.8rem;
+      color: var(--slate-600);
+      margin-bottom: 0.2rem;
+    }
+
+    .ai-summary-text {
+      font-size: 1rem;
+      color: var(--text);
+      line-height: 1.6;
+      white-space: pre-line;
+    }
+
+    .action-bar {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/pages/dashboard.html" class="logo">
+        <div class="logo-icon">⚗</div>
+        <span class="logo-text">Beat <span>Claude</span></span>
+      </a>
+      <div class="nav-links">
+        <span id="userNameDisplay" style="font-size:0.875rem; color: var(--slate-500);"></span>
+        <button class="btn btn-ghost" onclick="handleLogout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="details-layout">
+    <button class="back-link" onclick="history.back()">← Back</button>
+
+    <!-- Loading -->
+    <div id="loadingState" class="loading-state">
+      <div class="spinner" style="margin: 0 auto 1rem;"></div>
+      <p style="color: var(--slate-500);">Loading candidate details...</p>
+    </div>
+
+    <!-- Content -->
+    <div id="content" class="hidden">
+      <!-- Header Card -->
+      <div class="candidate-header-card">
+        <div id="avatarCircle" class="candidate-avatar">--</div>
+        <div class="candidate-info">
+          <div id="cName" class="candidate-name">--</div>
+          <div id="cEmail" class="candidate-email">--</div>
+          <div id="cPhone" class="candidate-phone"></div>
+          <div id="submittedAt" style="font-size:0.75rem; color: var(--slate-400); margin-top: 0.35rem;"></div>
+        </div>
+        <div class="candidate-score-block">
+          <div>
+            <span id="totalScore" class="big-score">--</span>
+            <span id="maxScore" class="score-denom">/--</span>
+          </div>
+          <div style="font-size: 0.8rem; color: var(--slate-500);">Total Score</div>
+          <span id="recommendationBadge" class="badge" style="margin-top: 0.5rem;">--</span>
+        </div>
+      </div>
+
+      <div class="detail-sections">
+        <!-- Score Summary -->
+        <div class="detail-card">
+          <div class="detail-card-title">📊 Score Summary</div>
+          <div class="score-grid">
+            <div class="score-item">
+              <div id="pctVal" class="score-value violet">--%</div>
+              <div class="score-item-label">Score %</div>
+            </div>
+            <div class="score-item">
+              <div id="rankVal" class="score-value indigo">--</div>
+              <div class="score-item-label">Rank</div>
+            </div>
+            <div class="score-item">
+              <div id="percentileVal" class="score-value green">--%</div>
+              <div class="score-item-label">Percentile</div>
+            </div>
+            <div class="score-item">
+              <div id="scoringStatus" class="score-value orange">--</div>
+              <div class="score-item-label">AI Status</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assessment Info -->
+        <div class="detail-card">
+          <div class="detail-card-title">📋 Assessment Info</div>
+          <div class="assessment-grid">
+            <div class="assessment-item">
+              <label>Assessment Title</label>
+              <span id="assessTitle">--</span>
+            </div>
+            <div class="assessment-item">
+              <label>Role</label>
+              <span id="assessRole">--</span>
+            </div>
+            <div class="assessment-item">
+              <label>Department</label>
+              <span id="assessDept">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Summary (if any) -->
+        <div class="detail-card" id="aiSummaryCard">
+          <div class="detail-card-title">🤖 AI Summary</div>
+          <div id="aiSummary" class="ai-summary-text">--</div>
+        </div>
+
+        <!-- Question Responses -->
+        <div class="detail-card">
+          <div class="detail-card-title">💬 Question Responses</div>
+          <div id="responsesList"></div>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <button class="btn btn-secondary" onclick="window.print()">🖨️ Print Report</button>
+        <button class="btn btn-primary" onclick="downloadReport()">⬇️ Download Report</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    let candidateData = null;
+
+    async function init() {
+      const user = await requireAuth();
+      if (!user) return; // requireAuth() redirects to login if not authed
+      document.getElementById('userNameDisplay').textContent = user.full_name || user.email;
+
+      const params = new URLSearchParams(window.location.search);
+      const candidateId = params.get('id');
+
+      if (!candidateId) {
+        history.back();
+        return;
+      }
+
+      await loadDetails(candidateId);
+    }
+
+    async function loadDetails(id) {
+      // 10-second timeout so the spinner never hangs forever
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 10000);
+
+      try {
+        const response = await fetch(`${API_URL}/candidates/${id}/details`, {
+          credentials: 'include',
+          signal: controller.signal
+        });
+        clearTimeout(timer);
+
+        if (!response.ok) {
+          const errBody = await response.json().catch(() => ({ detail: `HTTP ${response.status}` }));
+          throw new Error(errBody.detail || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        candidateData = data.candidate;
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('content').classList.remove('hidden');
+        renderDetails(data.candidate);
+      } catch (err) {
+        clearTimeout(timer);
+        const msg = err.name === 'AbortError'
+          ? 'Request timed out. Please check your connection and try again.'
+          : (err.message || 'Failed to load candidate details.');
+        document.getElementById('loadingState').innerHTML = `
+          <div style="text-align:center; padding: 4rem 1rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 1.5rem;">⚠️</div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text); margin-bottom: 0.75rem;">Could not load candidate</h3>
+            <p style="color: var(--text2); margin-bottom: 2rem; font-size: 0.9375rem;">${msg}</p>
+            <button onclick="history.back()" class="btn btn-secondary">← Go Back</button>
+          </div>
+        `;
+      }
+    }
+
+    function getInitials(name) {
+      return (name || 'NA').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    }
+
+    function renderDetails(c) {
+      document.getElementById('avatarCircle').textContent = getInitials(c.full_name);
+      document.getElementById('cName').textContent = c.full_name;
+      document.getElementById('cEmail').textContent = c.email;
+      document.getElementById('cPhone').textContent = c.phone || '';
+      document.getElementById('submittedAt').textContent = c.submitted_at
+        ? 'Submitted: ' + new Date(c.submitted_at).toLocaleString() : '';
+      document.getElementById('totalScore').textContent = (c.total_score || 0).toFixed(1);
+      document.getElementById('maxScore').textContent = '/' + (c.max_score || 0).toFixed(0);
+
+      document.getElementById('pctVal').textContent = (c.percentage || 0).toFixed(1) + '%';
+      document.getElementById('rankVal').textContent = c.rank ? '#' + c.rank : '--';
+      document.getElementById('percentileVal').textContent = c.percentile ? c.percentile.toFixed(1) + '%' : '--';
+      document.getElementById('scoringStatus').textContent = (c.scoring_status || 'pending').toUpperCase();
+
+      // Assessment info
+      document.getElementById('assessTitle').textContent = c.assessment_title || '--';
+      document.getElementById('assessRole').textContent = c.role_title || '--';
+      document.getElementById('assessDept').textContent = c.department || '--';
+
+      // Recommendation badge
+      const rec = c.recommendation || 'PENDING';
+      const badge = document.getElementById('recommendationBadge');
+      badge.textContent = rec;
+      badge.className = 'badge badge-' + rec.toLowerCase();
+
+      // AI Summary
+      document.getElementById('aiSummary').textContent = c.ai_summary || 'AI scoring in progress or no summary available.';
+
+      // Responses
+      renderResponses(c.responses || []);
+    }
+
+    function renderResponses(responses) {
+      const container = document.getElementById('responsesList');
+
+      if (responses.length === 0) {
+        container.innerHTML = '<p style="color: var(--slate-400); text-align: center; padding: 2rem;">No responses recorded.</p>';
+        return;
+      }
+
+      const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+      container.innerHTML = responses.map((r, i) => {
+        const pct = r.max_score > 0 ? (r.score / r.max_score * 100) : 0;
+        const pillClass = pct >= 70 ? 'high' : pct >= 40 ? 'mid' : 'low';
+        const typeClass = 'pill-' + r.type.toLowerCase().replace(' ', '_');
+
+        let answerDisplay;
+        if (r.type === 'MCQ') {
+          const opts = r.question_options || [];
+          const selIdx = letters.indexOf((r.selected_option || '').toUpperCase());
+          const selText = selIdx >= 0 ? opts[selIdx] : null;
+          const correctIdx = letters.indexOf((r.correct_answer || '').toUpperCase());
+          const correctText = correctIdx >= 0 ? opts[correctIdx] : r.correct_answer;
+
+          answerDisplay = `
+            <div class="answer-block">
+              <div class="answer-label">Selected Answer</div>
+              <div class="answer-text">
+                ${r.selected_option ? `<strong>${r.selected_option}.</strong> ${selText || r.selected_option}` : '<em style="color:var(--slate-400)">No answer selected</em>'}
+              </div>
+              ${r.correct_answer ? `
+                <div class="answer-label" style="margin-top: 0.6rem;">Correct Answer</div>
+                <div class="answer-text" style="color: #059669;">
+                  <strong>${r.correct_answer}.</strong> ${correctText || r.correct_answer}
+                </div>
+              ` : ''}
+            </div>
+          `;
+        } else {
+          answerDisplay = `
+            <div class="answer-block">
+              <div class="answer-label">Candidate's Answer</div>
+              <div class="answer-text">${r.answer_text || '<em style="color:var(--slate-400)">No answer provided</em>'}</div>
+            </div>
+          `;
+        }
+
+        let aiFeedback = '';
+        if (r.reasoning) {
+          let strengthsHTML = '';
+          let gapsHTML = '';
+
+          if (r.strengths && r.strengths.length > 0) {
+            strengthsHTML = `
+              <div>
+                <div class="ai-list-header strengths">✅ Strengths</div>
+                <ul class="ai-list">${r.strengths.map(s => `<li>${s}</li>`).join('')}</ul>
+              </div>
+            `;
+          }
+
+          if (r.gaps && r.gaps.length > 0) {
+            gapsHTML = `
+              <div>
+                <div class="ai-list-header gaps">⚠️ Gaps</div>
+                <ul class="ai-list">${r.gaps.map(g => `<li>${g}</li>`).join('')}</ul>
+              </div>
+            `;
+          }
+
+          aiFeedback = `
+            <div class="ai-feedback-block">
+              <div class="ai-feedback-label">🤖 AI Evaluation</div>
+              <div class="ai-reasoning">${r.reasoning}</div>
+              ${(strengthsHTML || gapsHTML) ? `<div class="ai-lists">${strengthsHTML}${gapsHTML}</div>` : ''}
+            </div>
+          `;
+        }
+
+        return `
+          <div class="response-item">
+            <div class="response-header">
+              <div class="response-meta">
+                <span class="q-num-label">Q${r.question_number}</span>
+                <span class="question-type-pill ${typeClass}">${r.type.replace('_', ' ')}</span>
+                <span style="font-size: 0.75rem; color: var(--slate-400);">${r.skill}</span>
+              </div>
+              <span class="score-pill ${pillClass}">${(r.score || 0).toFixed(1)} / ${r.max_score} pts</span>
+            </div>
+            <div class="question-text-r">${r.question_text}</div>
+            ${answerDisplay}
+            ${aiFeedback}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function downloadReport() {
+      if (!candidateData) return;
+      const c = candidateData;
+      const lines = [
+        'CANDIDATE EVALUATION REPORT',
+        '============================',
+        '',
+        `Candidate:   ${c.full_name}`,
+        `Email:       ${c.email}`,
+        `Phone:       ${c.phone || 'N/A'}`,
+        `Assessment:  ${c.assessment_title}`,
+        `Role:        ${c.role_title}`,
+        `Submitted:   ${c.submitted_at || 'N/A'}`,
+        '',
+        `TOTAL SCORE: ${(c.total_score || 0).toFixed(1)} / ${(c.max_score || 0).toFixed(0)}  (${(c.percentage || 0).toFixed(1)}%)`,
+        `Rank:        ${c.rank ? '#' + c.rank : 'N/A'}`,
+        `Percentile:  ${c.percentile ? c.percentile.toFixed(1) + '%' : 'N/A'}`,
+        `Recommendation: ${c.recommendation || 'PENDING'}`,
+        '',
+        'AI SUMMARY',
+        '----------',
+        c.ai_summary || 'Not available',
+        '',
+        'QUESTION RESPONSES',
+        '------------------',
+        ...(c.responses || []).map((r, i) => [
+          `Q${r.question_number} [${r.type}] - ${r.skill}`,
+          r.question_text,
+          `Answer: ${r.answer_text || r.selected_option || '(no answer)'}`,
+          `Score: ${(r.score || 0).toFixed(1)} / ${r.max_score}`,
+          r.reasoning ? `AI: ${r.reasoning}` : '',
+          ''
+        ].join('\n')),
+        '',
+        'Generated by Beat Claude - AI Hiring Companion'
+      ];
+
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${(c.full_name || 'Candidate').replace(/\s+/g, '_')}_Report.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    init();
+  </script>
+</body>
+
+</html>

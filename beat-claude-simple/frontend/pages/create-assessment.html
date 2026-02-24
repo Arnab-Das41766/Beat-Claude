@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Assessment - Beat Claude</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .two-column {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .two-column {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .tips-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+    }
+
+    .tips-title {
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .tip-item {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.875rem;
+      color: var(--text2);
+    }
+
+    .tip-number {
+      width: 24px;
+      height: 24px;
+      background: var(--gold-dim);
+      color: var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .slider-container {
+      margin-bottom: 1.5rem;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .slider {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--surface3);
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--gold);
+      cursor: pointer;
+    }
+
+    .slider::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--gold);
+      cursor: pointer;
+      border: none;
+    }
+
+    .generating-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(12, 12, 14, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(8px);
+    }
+
+    .generating-content {
+      text-align: center;
+    }
+
+    .generating-icon {
+      width: 80px;
+      height: 80px;
+      background: var(--gold-dim);
+      color: var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      margin: 0 auto 1.5rem;
+      animation: pulse 2s infinite;
+      box-shadow: 0 0 40px rgba(212, 168, 71, 0.2);
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <a href="/pages/dashboard.html" class="logo">
+        <div class="logo-icon">⚗</div>
+        <span class="logo-text">Beat <span>Claude</span></span>
+      </a>
+      <div class="nav-links">
+        <button class="btn btn-ghost" onclick="handleLogout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container" style="padding: 2rem 1rem;">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">Create New Assessment</h1>
+      <p class="page-subtitle">Paste a job description and our AI will generate a tailored assessment</p>
+    </div>
+
+    <div class="two-column">
+      <!-- Left Column - Form -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h2 class="section-title" style="margin: 0;">📄 Job Description</h2>
+            <p style="color: var(--text3); font-size: 0.875rem; margin-top: 0.25rem;">
+              Paste the complete job description. Our AI will parse it to extract skills and requirements.
+            </p>
+          </div>
+          <div class="card-body">
+            <div id="alertContainer"></div>
+
+            <form id="createForm">
+              <div class="form-group">
+                <textarea id="jdText" class="form-textarea form-textarea-lg" placeholder="Paste job description here..."
+                  required></textarea>
+                <p style="font-size: 0.75rem; color: var(--text3); margin-top: 0.5rem;">
+                  Minimum 50 characters required
+                </p>
+              </div>
+
+              <div class="slider-container">
+                <div class="slider-label">
+                  <span>Number of Questions</span>
+                  <span id="questionsValue">10</span>
+                </div>
+                <input type="range" id="numQuestions" class="slider" min="5" max="20" value="10"
+                  oninput="$('#questionsValue').textContent = this.value">
+              </div>
+
+              <div class="slider-container">
+                <div class="slider-label">
+                  <span>Duration (minutes)</span>
+                  <span id="durationValue">60</span>
+                </div>
+                <input type="range" id="duration" class="slider" min="15" max="180" step="5" value="60"
+                  oninput="$('#durationValue').textContent = this.value">
+              </div>
+
+              <div class="flex gap-4">
+                <a href="/pages/dashboard.html" class="btn btn-secondary" style="flex: 1;">Cancel</a>
+                <button type="submit" class="btn btn-primary" style="flex: 1;" id="submitBtn">
+                  ✨ Generate Assessment
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column - Tips -->
+      <div>
+        <div class="tips-card mb-4">
+          <h3 class="tips-title">💡 Tips for Best Results</h3>
+          <div class="tip-item">
+            <span class="tip-number">1</span>
+            <span>Include detailed requirements and responsibilities</span>
+          </div>
+          <div class="tip-item">
+            <span class="tip-number">2</span>
+            <span>List specific skills and technologies required</span>
+          </div>
+          <div class="tip-item">
+            <span class="tip-number">3</span>
+            <span>Mention experience level and education requirements</span>
+          </div>
+        </div>
+
+        <div class="tips-card">
+          <h3 class="tips-title">⏱️ What Happens Next?</h3>
+          <div class="tip-item">
+            <span>🤖</span>
+            <span>AI parses your JD (10-20 seconds)</span>
+          </div>
+          <div class="tip-item">
+            <span>✨</span>
+            <span>Questions are generated automatically</span>
+          </div>
+          <div class="tip-item">
+            <span>📄</span>
+            <span>Review and publish your assessment</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Generating Overlay -->
+  <div id="generatingOverlay" class="generating-overlay hidden">
+    <div class="generating-content">
+      <div class="generating-icon">✨</div>
+      <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text);">AI is Creating Your
+        Assessment</h2>
+      <p style="color: var(--text2);">Parsing job description and generating role-specific questions...</p>
+      <div class="loading" style="margin-top: 1.5rem;">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    // Check auth
+    requireAuth();
+
+    const form = $('#createForm');
+    const alertContainer = $('#alertContainer');
+    const submitBtn = $('#submitBtn');
+    const generatingOverlay = $('#generatingOverlay');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const jdText = $('#jdText').value;
+      const numQuestions = $('#numQuestions').value;
+      const duration = $('#duration').value;
+
+      if (jdText.length < 50) {
+        showAlert(alertContainer, 'Please enter at least 50 characters', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      show(generatingOverlay);
+
+      try {
+        const result = await assessments.create(jdText, numQuestions, duration);
+
+        if (result.success) {
+          navigateTo(`/pages/assessment.html?id=${result.assessment_id}`);
+        } else {
+          hide(generatingOverlay);
+          showAlert(alertContainer, result.detail || 'Failed to create assessment', 'error');
+        }
+      } catch (error) {
+        hide(generatingOverlay);
+        showAlert(alertContainer, 'Network error. Please try again.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+
+</html>
