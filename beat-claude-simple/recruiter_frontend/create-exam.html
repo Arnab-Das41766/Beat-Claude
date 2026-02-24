@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Exam — Beat Claude</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        :root {
+            --bg: #0a0a0b;
+            --surface: #111113;
+            --surface2: #18181b;
+            --surface3: #1f1f23;
+            --border: #27272a;
+            --border2: #3f3f46;
+            --text: #f4f4f5;
+            --text2: #a1a1aa;
+            --text3: #71717a;
+            --purple: #7c3aed;
+            --purple2: #6d28d9;
+            --purple-glow: rgba(124, 58, 237, .15);
+            --gradient: linear-gradient(135deg, #7c3aed, #a855f7);
+            --green: #22c55e;
+            --red: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            height: 68px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 50
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: .6rem
+        }
+
+        .header .icon {
+            width: 34px;
+            height: 34px;
+            background: var(--gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px
+        }
+
+        .header-logo {
+            font-weight: 800;
+            font-size: 1.2rem
+        }
+
+        .header-logo span {
+            color: var(--purple)
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text2);
+            padding: .45rem 1rem;
+            border-radius: .5rem;
+            font-size: .85rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .2s
+        }
+
+        .back-btn:hover {
+            color: var(--text);
+            border-color: var(--border2)
+        }
+
+        .main {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 2.5rem 2rem
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: .5rem
+        }
+
+        .subtitle {
+            color: var(--text2);
+            margin-bottom: 2.5rem;
+            font-size: 1rem
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            font-size: .8rem;
+            color: var(--text2);
+            margin-bottom: .5rem;
+            text-transform: uppercase;
+            letter-spacing: .05em
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 1rem;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: .75rem;
+            color: var(--text);
+            font-size: .95rem;
+            font-family: inherit;
+            min-height: 220px;
+            resize: vertical;
+            line-height: 1.6;
+            transition: all .2s
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--purple);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, .1)
+        }
+
+        .form-textarea::placeholder {
+            color: var(--text3)
+        }
+
+        .form-hint {
+            font-size: .8rem;
+            color: var(--text3);
+            margin-top: .4rem
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem
+        }
+
+        .form-select {
+            width: 100%;
+            padding: .85rem 1rem;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: .6rem;
+            color: var(--text);
+            font-size: .95rem;
+            font-family: inherit;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2371717a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--purple)
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            padding: .9rem 2rem;
+            border: none;
+            border-radius: .7rem;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .25s;
+            width: 100%
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(124, 58, 237, .3)
+        }
+
+        .btn-primary:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+            transform: none
+        }
+
+        .message {
+            padding: .75rem 1rem;
+            border-radius: .5rem;
+            font-size: .85rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            display: none
+        }
+
+        .message.error {
+            display: block;
+            background: rgba(239, 68, 68, .1);
+            color: var(--red);
+            border: 1px solid rgba(239, 68, 68, .2)
+        }
+
+        /* Loading state */
+        .loading-state {
+            text-align: center;
+            padding: 2rem
+        }
+
+        .loading-state .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--purple);
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            margin: 0 auto 1.25rem
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .loading-state h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: .5rem
+        }
+
+        .loading-state p {
+            color: var(--text3);
+            font-size: .9rem
+        }
+
+        /* Success state */
+        .success-state {
+            text-align: center
+        }
+
+        .success-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem
+        }
+
+        .success-state h3 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: var(--green)
+        }
+
+        .link-box {
+            display: flex;
+            gap: .5rem;
+            margin: 1.5rem 0
+        }
+
+        .link-input {
+            flex: 1;
+            padding: .8rem 1rem;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: .5rem;
+            color: var(--text);
+            font-size: .85rem;
+            font-family: 'Inter', monospace
+        }
+
+        .btn-copy {
+            padding: .8rem 1.25rem;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: .5rem;
+            font-weight: 700;
+            font-size: .825rem;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: inherit;
+            transition: all .2s
+        }
+
+        .btn-copy:hover {
+            transform: translateY(-1px)
+        }
+
+        .btn-copy.copied {
+            background: var(--green)
+        }
+
+        /* Preview */
+        .preview {
+            margin-top: 2rem;
+            border-top: 1px solid var(--border);
+            padding-top: 2rem
+        }
+
+        .preview h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: var(--text2)
+        }
+
+        .q-item {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: .65rem;
+            padding: 1.25rem;
+            margin-bottom: .75rem
+        }
+
+        .q-header {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            margin-bottom: .5rem;
+            flex-wrap: wrap
+        }
+
+        .q-num {
+            font-size: .75rem;
+            font-weight: 700;
+            color: var(--text3)
+        }
+
+        .q-badge {
+            display: inline-flex;
+            padding: .15rem .5rem;
+            border-radius: 999px;
+            font-size: .7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .03em
+        }
+
+        .q-badge.mcq {
+            background: rgba(59, 130, 246, .1);
+            color: #60a5fa
+        }
+
+        .q-badge.open {
+            background: rgba(34, 197, 94, .1);
+            color: #4ade80
+        }
+
+        .q-badge.scenario {
+            background: rgba(251, 191, 36, .1);
+            color: #fbbf24
+        }
+
+        .q-skill {
+            font-size: .75rem;
+            color: var(--text3);
+            margin-left: auto
+        }
+
+        .q-text {
+            font-size: .925rem;
+            line-height: 1.55
+        }
+
+        .action-row {
+            display: flex;
+            gap: .75rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .7rem 1.5rem;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-weight: 600;
+            font-size: .875rem;
+            border-radius: .5rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .2s
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--purple);
+            color: var(--purple)
+        }
+
+        @media(max-width:640px) {
+            .main {
+                padding: 1.5rem 1rem
+            }
+
+            .form-row {
+                grid-template-columns: 1fr
+            }
+
+            .link-box {
+                flex-direction: column
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="header-left">
+            <div class="icon">⚡</div>
+            <span class="header-logo">Beat <span>Claude</span></span>
+        </div>
+        <button class="back-btn" onclick="window.location.href='dashboard.html'">← Dashboard</button>
+    </header>
+
+    <main class="main">
+        <h1>Create New Exam</h1>
+        <p class="subtitle">Paste a job description and our AI will generate a tailored assessment.</p>
+
+        <!-- Form -->
+        <div class="card" id="formCard">
+            <div id="error" class="message"></div>
+
+            <div class="form-group">
+                <label class="form-label">Job Description</label>
+                <textarea class="form-textarea" id="jdInput"
+                    placeholder="Paste the complete job description here...&#10;&#10;Example: We are looking for a Senior Python Developer with 5+ years experience in Django, REST APIs, PostgreSQL, and Docker. Responsibilities include designing microservices, writing unit tests, mentoring junior developers, and leading code reviews."></textarea>
+                <div class="form-hint">Minimum 30 characters. The more detail you provide, the better the questions.
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Number of Questions</label>
+                    <select class="form-select" id="numQuestions">
+                        <option value="5">5 questions</option>
+                        <option value="10" selected>10 questions</option>
+                        <option value="15">15 questions</option>
+                        <option value="20">20 questions</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Duration</label>
+                    <select class="form-select" id="duration">
+                        <option value="15">15 minutes</option>
+                        <option value="30" selected>30 minutes</option>
+                        <option value="45">45 minutes</option>
+                        <option value="60">60 minutes</option>
+                        <option value="90">90 minutes</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="generateBtn" onclick="generateExam()">⚡ Generate Exam with AI</button>
+        </div>
+
+        <!-- Loading -->
+        <div class="card" id="loadingCard" style="display:none">
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <h3>Generating your assessment...</h3>
+                <p>Our AI is parsing the job description and creating questions. This usually takes 15–30 seconds.</p>
+            </div>
+        </div>
+
+        <!-- Success -->
+        <div class="card" id="successCard" style="display:none">
+            <div class="success-state">
+                <div class="success-icon">✅</div>
+                <h3>Exam Created Successfully!</h3>
+                <p style="color:var(--text2)">Share this link with your candidates:</p>
+
+                <div class="link-box">
+                    <input type="text" class="link-input" id="examLink" readonly>
+                    <button class="btn-copy" id="copyBtn" onclick="copyLink()">📋 Copy Link</button>
+                </div>
+
+                <div class="action-row">
+                    <button class="btn-secondary" onclick="window.location.href='dashboard.html'">← Back to
+                        Dashboard</button>
+                    <button class="btn-secondary" onclick="resetForm()">+ Create Another</button>
+                </div>
+            </div>
+
+            <div class="preview" id="preview"></div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const API_BASE = 'https://beat-claude-production.up.railway.app';
+
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let userEmail = '';
+
+        // Auth guard
+        (async () => {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) { window.location.href = 'auth.html'; return; }
+            userEmail = session.user.email;
+        })();
+
+        async function generateExam() {
+            const jd = document.getElementById('jdInput').value.trim();
+            const numQ = parseInt(document.getElementById('numQuestions').value);
+            const dur = parseInt(document.getElementById('duration').value);
+            const errEl = document.getElementById('error');
+
+            if (jd.length < 30) {
+                errEl.textContent = 'Job description must be at least 30 characters.';
+                errEl.className = 'message error';
+                return;
+            }
+
+            errEl.style.display = 'none';
+            document.getElementById('formCard').style.display = 'none';
+            document.getElementById('loadingCard').style.display = 'block';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/create-exam`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        job_description: jd,
+                        recruiter_email: userEmail,
+                        num_questions: numQ,
+                        duration_minutes: dur,
+                    }),
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.detail || 'Failed to create exam');
+
+                document.getElementById('loadingCard').style.display = 'none';
+                document.getElementById('successCard').style.display = 'block';
+                document.getElementById('examLink').value = data.exam_link;
+
+                // Load the full exam to show preview
+                showQuestionPreview(data.slug);
+            } catch (err) {
+                document.getElementById('loadingCard').style.display = 'none';
+                document.getElementById('formCard').style.display = 'block';
+                errEl.textContent = err.message;
+                errEl.className = 'message error';
+            }
+        }
+
+        async function showQuestionPreview(slug) {
+            try {
+                const res = await fetch(`${API_BASE}/recruiter/results/${slug}`);
+                const data = await res.json();
+                const questions = data.questions || [];
+
+                if (questions.length === 0) return;
+
+                let html = '<h3>Generated Questions Preview</h3>';
+                questions.forEach((q, i) => {
+                    const type = (q.type || 'MCQ').toUpperCase();
+                    const badgeClass = type === 'MCQ' ? 'mcq' : type === 'SCENARIO' ? 'scenario' : 'open';
+                    html += `<div class="q-item">
+        <div class="q-header">
+          <span class="q-num">Q${i + 1}</span>
+          <span class="q-badge ${badgeClass}">${type}</span>
+          <span class="q-skill">${esc(q.skill || '')}</span>
+        </div>
+        <div class="q-text">${esc(q.question)}</div>
+      </div>`;
+                });
+
+                document.getElementById('preview').innerHTML = html;
+            } catch (e) {
+                // Preview is optional, don't block success
+            }
+        }
+
+        function copyLink() {
+            const input = document.getElementById('examLink');
+            navigator.clipboard.writeText(input.value).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.classList.add('copied');
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '📋 Copy Link'; }, 2500);
+            });
+        }
+
+        function resetForm() {
+            document.getElementById('jdInput').value = '';
+            document.getElementById('successCard').style.display = 'none';
+            document.getElementById('formCard').style.display = 'block';
+            document.getElementById('preview').innerHTML = '';
+            document.getElementById('error').style.display = 'none';
+        }
+
+        function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    </script>
+</body>
+
+</html>

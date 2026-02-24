@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results — Beat Claude</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        :root {
+            --bg: #0a0a0b;
+            --surface: #111113;
+            --surface2: #18181b;
+            --surface3: #1f1f23;
+            --border: #27272a;
+            --border2: #3f3f46;
+            --text: #f4f4f5;
+            --text2: #a1a1aa;
+            --text3: #71717a;
+            --purple: #7c3aed;
+            --purple2: #6d28d9;
+            --purple-glow: rgba(124, 58, 237, .15);
+            --gradient: linear-gradient(135deg, #7c3aed, #a855f7);
+            --green: #22c55e;
+            --red: #ef4444;
+            --amber: #f59e0b;
+            --blue: #3b82f6;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            height: 68px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 50
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: .6rem
+        }
+
+        .header .icon {
+            width: 34px;
+            height: 34px;
+            background: var(--gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px
+        }
+
+        .header-logo {
+            font-weight: 800;
+            font-size: 1.2rem
+        }
+
+        .header-logo span {
+            color: var(--purple)
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text2);
+            padding: .45rem 1rem;
+            border-radius: .5rem;
+            font-size: .85rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .2s
+        }
+
+        .back-btn:hover {
+            color: var(--text);
+            border-color: var(--border2)
+        }
+
+        .main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem
+        }
+
+        .page-header {
+            margin-bottom: 2rem
+        }
+
+        .page-header h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: .25rem
+        }
+
+        .page-meta {
+            color: var(--text3);
+            font-size: .9rem
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: .875rem;
+            padding: 1.25rem
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace
+        }
+
+        .stat-value.purple {
+            color: var(--purple)
+        }
+
+        .stat-value.green {
+            color: var(--green)
+        }
+
+        .stat-value.amber {
+            color: var(--amber)
+        }
+
+        .stat-value.blue {
+            color: var(--blue)
+        }
+
+        .stat-label {
+            font-size: .75rem;
+            color: var(--text3);
+            margin-top: .2rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: .03em
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .6rem 1.25rem;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text2);
+            font-size: .825rem;
+            font-weight: 600;
+            border-radius: .5rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .2s
+        }
+
+        .btn:hover {
+            border-color: var(--purple);
+            color: var(--purple)
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            border: none;
+            color: white
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 16px rgba(124, 58, 237, .3)
+        }
+
+        .table-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: .875rem;
+            overflow: hidden
+        }
+
+        .table-empty {
+            padding: 4rem 2rem;
+            text-align: center
+        }
+
+        .table-empty .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: .5
+        }
+
+        .table-empty h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: .5rem
+        }
+
+        .table-empty p {
+            color: var(--text3);
+            font-size: .9rem
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        thead {
+            background: var(--surface2)
+        }
+
+        th {
+            padding: .75rem 1.15rem;
+            text-align: left;
+            font-size: .72rem;
+            font-weight: 700;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            border-bottom: 1px solid var(--border)
+        }
+
+        td {
+            padding: .85rem 1.15rem;
+            font-size: .875rem;
+            border-bottom: 1px solid rgba(39, 39, 42, .5);
+            vertical-align: middle
+        }
+
+        tr:last-child td {
+            border-bottom: none
+        }
+
+        .cand-row {
+            cursor: pointer;
+            transition: background .15s
+        }
+
+        .cand-row:hover td {
+            background: rgba(124, 58, 237, .03)
+        }
+
+        .cand-name {
+            font-weight: 600
+        }
+
+        .cand-email {
+            font-size: .8rem;
+            color: var(--text3)
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: .2rem .55rem;
+            border-radius: 999px;
+            font-size: .72rem;
+            font-weight: 700
+        }
+
+        .badge-green {
+            background: rgba(34, 197, 94, .1);
+            color: var(--green)
+        }
+
+        .badge-red {
+            background: rgba(239, 68, 68, .1);
+            color: var(--red)
+        }
+
+        .badge-amber {
+            background: rgba(245, 158, 11, .1);
+            color: var(--amber)
+        }
+
+        .badge-purple {
+            background: var(--purple-glow);
+            color: var(--purple)
+        }
+
+        .violations {
+            color: var(--text3);
+            font-size: .8rem
+        }
+
+        .violations.warn {
+            color: var(--amber)
+        }
+
+        .violations.bad {
+            color: var(--red)
+        }
+
+        /* Expanded row */
+        .detail-row {
+            display: none
+        }
+
+        .detail-row.open {
+            display: table-row
+        }
+
+        .detail-row td {
+            padding: 0;
+            background: var(--surface2)
+        }
+
+        .detail-inner {
+            padding: 1.25rem
+        }
+
+        .detail-title {
+            font-size: .8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: var(--text3);
+            margin-bottom: .75rem
+        }
+
+        .answer-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: .6rem;
+            padding: 1rem;
+            margin-bottom: .6rem
+        }
+
+        .answer-header {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: wrap;
+            margin-bottom: .4rem
+        }
+
+        .answer-num {
+            font-size: .75rem;
+            font-weight: 700;
+            color: var(--text3)
+        }
+
+        .answer-type {
+            font-size: .68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: .1rem .4rem;
+            border-radius: 999px
+        }
+
+        .answer-type.mcq {
+            background: rgba(59, 130, 246, .1);
+            color: #60a5fa
+        }
+
+        .answer-type.open {
+            background: rgba(34, 197, 94, .1);
+            color: #4ade80
+        }
+
+        .answer-type.scenario {
+            background: rgba(251, 191, 36, .1);
+            color: #fbbf24
+        }
+
+        .answer-correct {
+            font-size: .75rem;
+            font-weight: 600;
+            margin-left: auto
+        }
+
+        .answer-correct.yes {
+            color: var(--green)
+        }
+
+        .answer-correct.no {
+            color: var(--red)
+        }
+
+        .answer-correct.pending {
+            color: var(--amber)
+        }
+
+        .answer-q {
+            font-size: .875rem;
+            font-weight: 500;
+            margin-bottom: .4rem;
+            line-height: 1.5
+        }
+
+        .answer-text {
+            font-size: .85rem;
+            color: var(--text2);
+            padding: .6rem .8rem;
+            background: var(--surface2);
+            border-radius: .35rem;
+            margin-bottom: .4rem;
+            line-height: 1.5
+        }
+
+        .answer-feedback {
+            font-size: .8rem;
+            color: var(--amber);
+            font-style: italic;
+            line-height: 1.45
+        }
+
+        .answer-score {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .78rem;
+            font-weight: 700;
+            color: var(--purple)
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text3)
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border);
+            border-top-color: var(--purple);
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            margin: 0 auto 1rem
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: .65rem;
+            padding: .85rem 1.25rem;
+            font-size: .875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            transform: translateY(120%);
+            transition: transform .3s;
+            z-index: 100;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .4)
+        }
+
+        .toast.show {
+            transform: translateY(0)
+        }
+
+        @media(max-width:768px) {
+            .header {
+                padding: 0 1rem
+            }
+
+            .main {
+                padding: 1.5rem 1rem
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .table-wrap {
+                overflow-x: auto
+            }
+
+            table {
+                min-width: 650px
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="header-left">
+            <div class="icon">⚡</div>
+            <span class="header-logo">Beat <span>Claude</span></span>
+        </div>
+        <button class="back-btn" onclick="window.location.href='dashboard.html'">← Dashboard</button>
+    </header>
+
+    <main class="main">
+        <div class="page-header">
+            <h1 id="examTitle">Loading...</h1>
+            <div class="page-meta" id="examMeta"></div>
+        </div>
+
+        <div class="stats" id="statsRow">
+            <div class="stat-card">
+                <div class="stat-value purple" id="statCandidates">—</div>
+                <div class="stat-label">Candidates</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value green" id="statAvg">—</div>
+                <div class="stat-label">Avg Score</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value amber" id="statQuestions">—</div>
+                <div class="stat-label">Questions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value blue" id="statDuration">—</div>
+                <div class="stat-label">Duration</div>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <button class="btn" onclick="exportCSV()">📥 Export CSV</button>
+            <button class="btn" onclick="copyLink()">📋 Copy Exam Link</button>
+            <button class="btn" onclick="loadResults()">🔄 Refresh</button>
+        </div>
+
+        <div class="table-wrap" id="tableWrap">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                Loading results...
+            </div>
+        </div>
+    </main>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const API_BASE = 'https://beat-claude-production.up.railway.app';
+
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Get slug from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const SLUG = urlParams.get('slug');
+        if (!SLUG) { window.location.href = 'dashboard.html'; }
+
+        let examData = null;
+
+        // Auth guard
+        (async () => {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) { window.location.href = 'auth.html'; return; }
+            loadResults();
+        })();
+
+        async function loadResults() {
+            try {
+                const res = await fetch(`${API_BASE}/recruiter/results/${SLUG}`);
+                if (!res.ok) throw new Error('Exam not found');
+                examData = await res.json();
+
+                const exam = examData.exam;
+                const candidates = examData.candidates || [];
+
+                document.getElementById('examTitle').textContent = exam.title;
+                document.getElementById('examMeta').textContent = `Created ${new Date(exam.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} · ${exam.recruiter_email}`;
+
+                document.getElementById('statCandidates').textContent = candidates.length;
+                document.getElementById('statQuestions').textContent = exam.num_questions;
+                document.getElementById('statDuration').textContent = exam.duration_minutes + 'm';
+
+                if (candidates.length > 0) {
+                    const avgScores = candidates.map(c => {
+                        const total = c.total_questions;
+                        const correct = c.mcq_correct + (c.ai_average > 0 ? Math.round(c.ai_average / 10 * (total - c.mcq_total)) : 0);
+                        return total > 0 ? Math.round(correct / total * 100) : 0;
+                    });
+                    const avg = Math.round(avgScores.reduce((a, b) => a + b, 0) / avgScores.length);
+                    document.getElementById('statAvg').textContent = avg + '%';
+                } else {
+                    document.getElementById('statAvg').textContent = '—';
+                }
+
+                renderTable(candidates);
+            } catch (err) {
+                document.getElementById('tableWrap').innerHTML = `
+      <div class="table-empty">
+        <div class="icon">⚠️</div>
+        <h3>Failed to load results</h3>
+        <p>${esc(err.message)}</p>
+      </div>`;
+            }
+        }
+
+        function renderTable(candidates) {
+            if (candidates.length === 0) {
+                document.getElementById('tableWrap').innerHTML = `
+      <div class="table-empty">
+        <div class="icon">📭</div>
+        <h3>No submissions yet</h3>
+        <p>Share the exam link with candidates. Results will appear here once they submit.</p>
+      </div>`;
+                return;
+            }
+
+            let html = `<table>
+    <thead><tr>
+      <th>Candidate</th><th>MCQ Score</th><th>AI Score</th><th>Violations</th><th>Submitted</th>
+    </tr></thead><tbody>`;
+
+            candidates.forEach((c, i) => {
+                const mcqPct = c.mcq_total > 0 ? Math.round(c.mcq_correct / c.mcq_total * 100) : 0;
+                const mcqClass = mcqPct >= 70 ? 'green' : mcqPct >= 40 ? 'amber' : 'red';
+                const aiClass = c.ai_average >= 6 ? 'green' : c.ai_average >= 3 ? 'amber' : 'red';
+                const vClass = c.tab_violations === 0 ? '' : c.tab_violations <= 2 ? ' warn' : ' bad';
+                const date = c.submitted_at ? new Date(c.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+
+                html += `<tr class="cand-row" onclick="toggleDetail(${i})">
+      <td><div class="cand-name">${esc(c.name)}</div><div class="cand-email">${esc(c.email)}</div></td>
+      <td><span class="badge badge-${mcqClass}">${c.mcq_score} (${mcqPct}%)</span></td>
+      <td><span class="badge badge-${aiClass}">${c.ai_average}/10</span></td>
+      <td><span class="violations${vClass}">${c.tab_violations}</span></td>
+      <td><span style="font-size:.8rem;color:var(--text3)">${date}</span></td>
+    </tr>
+    <tr class="detail-row" id="detail-${i}">
+      <td colspan="5">
+        <div class="detail-inner">
+          <div class="detail-title">Question-by-Question Breakdown</div>
+          ${renderAnswers(c.answers)}
+        </div>
+      </td>
+    </tr>`;
+            });
+
+            html += '</tbody></table>';
+            document.getElementById('tableWrap').innerHTML = html;
+        }
+
+        function renderAnswers(answers) {
+            if (!answers || answers.length === 0) return '<p style="color:var(--text3)">No answer data available</p>';
+
+            return answers.map((a, i) => {
+                const type = (a.question_type || 'MCQ').toUpperCase();
+                const typeClass = type === 'MCQ' ? 'mcq' : type === 'SCENARIO' ? 'scenario' : 'open';
+
+                let statusText, statusClass;
+                if (type === 'MCQ') {
+                    statusText = a.is_correct ? '✓ Correct' : '✗ Wrong';
+                    statusClass = a.is_correct ? 'yes' : 'no';
+                } else if (a.ai_score >= 0) {
+                    statusText = `AI: ${a.ai_score}/10`;
+                    statusClass = a.ai_score >= 6 ? 'yes' : a.ai_score >= 3 ? 'pending' : 'no';
+                } else {
+                    statusText = '⏳ Pending';
+                    statusClass = 'pending';
+                }
+
+                let feedbackHtml = '';
+                if (a.ai_feedback && a.ai_feedback.length > 0) {
+                    feedbackHtml = `<div class="answer-feedback">💡 ${esc(a.ai_feedback)}</div>`;
+                }
+
+                let correctInfo = '';
+                if (type === 'MCQ' && a.correct_answer) {
+                    correctInfo = `<div style="font-size:.78rem;color:var(--text3);margin-bottom:.4rem">Correct answer: <strong>${esc(a.correct_answer)}</strong> · Candidate: <strong>${esc(a.candidate_answer)}</strong></div>`;
+                }
+
+                return `<div class="answer-item">
+      <div class="answer-header">
+        <span class="answer-num">Q${i + 1}</span>
+        <span class="answer-type ${typeClass}">${type}</span>
+        <span class="answer-correct ${statusClass}">${statusText}</span>
+      </div>
+      <div class="answer-q">${esc(a.question_text)}</div>
+      ${correctInfo}
+      <div class="answer-text">${esc(a.candidate_answer || '(no answer)')}</div>
+      ${feedbackHtml}
+    </div>`;
+            }).join('');
+        }
+
+        function toggleDetail(idx) {
+            const el = document.getElementById('detail-' + idx);
+            el.classList.toggle('open');
+        }
+
+        function copyLink() {
+            const link = `${API_BASE.replace('beat-claude-production.up.railway.app', 'beat-claude-production.up.railway.app')}/exam/${SLUG}`;
+            navigator.clipboard.writeText(link).then(() => showToast('Link copied!'));
+        }
+
+        function exportCSV() {
+            if (!examData || !examData.candidates || examData.candidates.length === 0) {
+                showToast('No data to export');
+                return;
+            }
+
+            const exam = examData.exam;
+            const lines = ['Name,Email,Phone,MCQ Score,MCQ %,AI Average,Tab Violations,Submitted At'];
+
+            examData.candidates.forEach(c => {
+                const mcqPct = c.mcq_total > 0 ? Math.round(c.mcq_correct / c.mcq_total * 100) : 0;
+                lines.push([
+                    `"${c.name}"`,
+                    `"${c.email}"`,
+                    `"${c.phone || ''}"`,
+                    `"${c.mcq_score}"`,
+                    mcqPct + '%',
+                    c.ai_average + '/10',
+                    c.tab_violations,
+                    `"${c.submitted_at || ''}"`
+                ].join(','));
+            });
+
+            const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${exam.title.replace(/[^a-zA-Z0-9]/g, '_')}_results.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('CSV downloaded');
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = '✓ ' + msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    </script>
+</body>
+
+</html>

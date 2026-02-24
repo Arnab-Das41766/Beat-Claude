@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Beat Claude</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        :root {
+            --bg: #0a0a0b;
+            --surface: #111113;
+            --surface2: #18181b;
+            --surface3: #1f1f23;
+            --border: #27272a;
+            --border2: #3f3f46;
+            --text: #f4f4f5;
+            --text2: #a1a1aa;
+            --text3: #71717a;
+            --purple: #7c3aed;
+            --purple2: #6d28d9;
+            --purple-glow: rgba(124, 58, 237, .15);
+            --gradient: linear-gradient(135deg, #7c3aed, #a855f7);
+            --green: #22c55e;
+            --red: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            height: 68px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 50
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: .6rem
+        }
+
+        .header .icon {
+            width: 34px;
+            height: 34px;
+            background: var(--gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px
+        }
+
+        .header-logo {
+            font-weight: 800;
+            font-size: 1.2rem
+        }
+
+        .header-logo span {
+            color: var(--purple)
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem
+        }
+
+        .user-email {
+            font-size: .85rem;
+            color: var(--text2);
+            padding: .4rem .8rem;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: .5rem
+        }
+
+        .btn-logout {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text3);
+            padding: .45rem 1rem;
+            border-radius: .5rem;
+            font-size: .8rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .2s
+        }
+
+        .btn-logout:hover {
+            color: var(--red);
+            border-color: rgba(239, 68, 68, .3)
+        }
+
+        /* Main */
+        .main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 2rem
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem
+        }
+
+        .page-header h1 {
+            font-size: 1.75rem;
+            font-weight: 800
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            padding: .75rem 1.5rem;
+            border: none;
+            border-radius: .65rem;
+            font-weight: 700;
+            font-size: .9rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .25s
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(124, 58, 237, .3)
+        }
+
+        /* Stats cards */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: .875rem;
+            padding: 1.5rem
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .stat-label {
+            font-size: .8rem;
+            color: var(--text3);
+            margin-top: .25rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: .03em
+        }
+
+        /* Table */
+        .table-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: .875rem;
+            overflow: hidden
+        }
+
+        .table-empty {
+            padding: 4rem 2rem;
+            text-align: center
+        }
+
+        .table-empty .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: .5
+        }
+
+        .table-empty h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: .5rem
+        }
+
+        .table-empty p {
+            color: var(--text3);
+            font-size: .9rem
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        thead {
+            background: var(--surface2)
+        }
+
+        th {
+            padding: .85rem 1.25rem;
+            text-align: left;
+            font-size: .75rem;
+            font-weight: 700;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            border-bottom: 1px solid var(--border)
+        }
+
+        td {
+            padding: 1rem 1.25rem;
+            font-size: .9rem;
+            border-bottom: 1px solid rgba(39, 39, 42, .5)
+        }
+
+        tr:last-child td {
+            border-bottom: none
+        }
+
+        tr:hover td {
+            background: rgba(124, 58, 237, .03)
+        }
+
+        .exam-title {
+            font-weight: 600;
+            color: var(--text)
+        }
+
+        .exam-date {
+            color: var(--text3);
+            font-size: .8rem
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: .2rem .6rem;
+            border-radius: 999px;
+            font-size: .75rem;
+            font-weight: 600
+        }
+
+        .badge-purple {
+            background: var(--purple-glow);
+            color: var(--purple)
+        }
+
+        .badge-green {
+            background: rgba(34, 197, 94, .1);
+            color: var(--green)
+        }
+
+        .action-btns {
+            display: flex;
+            gap: .5rem
+        }
+
+        .btn-sm {
+            padding: .4rem .8rem;
+            border: 1px solid var(--border);
+            background: var(--surface2);
+            color: var(--text2);
+            font-size: .78rem;
+            font-weight: 600;
+            border-radius: .4rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .2s;
+            white-space: nowrap
+        }
+
+        .btn-sm:hover {
+            border-color: var(--purple);
+            color: var(--purple)
+        }
+
+        .btn-sm.copied {
+            border-color: var(--green);
+            color: var(--green)
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text3)
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border);
+            border-top-color: var(--purple);
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            margin: 0 auto 1rem
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: .65rem;
+            padding: .85rem 1.25rem;
+            font-size: .875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            transform: translateY(120%);
+            transition: transform .3s;
+            z-index: 100;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .4)
+        }
+
+        .toast.show {
+            transform: translateY(0)
+        }
+
+        @media(max-width:768px) {
+            .header {
+                padding: 0 1rem
+            }
+
+            .main {
+                padding: 1.5rem 1rem
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: stretch
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .table-wrap {
+                overflow-x: auto
+            }
+
+            table {
+                min-width: 600px
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="header-left">
+            <div class="icon">⚡</div>
+            <span class="header-logo">Beat <span>Claude</span></span>
+        </div>
+        <div class="header-right">
+            <span class="user-email" id="userEmail">—</span>
+            <button class="btn-logout" onclick="logout()">Sign Out</button>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="page-header">
+            <h1>Your Assessments</h1>
+            <a href="create-exam.html" class="btn btn-primary">+ Create New Exam</a>
+        </div>
+
+        <div class="stats" id="statsRow">
+            <div class="stat-card">
+                <div class="stat-value" id="statExams">—</div>
+                <div class="stat-label">Total Exams</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statCandidates">—</div>
+                <div class="stat-label">Total Candidates</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statAvg">—</div>
+                <div class="stat-label">Avg Score</div>
+            </div>
+        </div>
+
+        <div class="table-wrap" id="tableWrap">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                Loading your exams...
+            </div>
+        </div>
+    </main>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const API_BASE = 'https://beat-claude-production.up.railway.app';
+
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let userEmail = '';
+
+        // Auth guard
+        (async () => {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) { window.location.href = 'auth.html'; return; }
+            userEmail = session.user.email;
+            document.getElementById('userEmail').textContent = userEmail;
+            loadExams();
+        })();
+
+        async function logout() {
+            await sb.auth.signOut();
+            window.location.href = 'auth.html';
+        }
+
+        async function loadExams() {
+            try {
+                const res = await fetch(`${API_BASE}/recruiter/exams?email=${encodeURIComponent(userEmail)}`);
+                const data = await res.json();
+
+                if (!data.success) throw new Error('Failed to load exams');
+
+                const exams = data.exams || [];
+                const totalCandidates = exams.reduce((s, e) => s + e.candidate_count, 0);
+                const avgScore = exams.length > 0
+                    ? Math.round(exams.filter(e => e.candidate_count > 0).reduce((s, e) => s + e.avg_score, 0) / Math.max(1, exams.filter(e => e.candidate_count > 0).length))
+                    : 0;
+
+                document.getElementById('statExams').textContent = exams.length;
+                document.getElementById('statCandidates').textContent = totalCandidates;
+                document.getElementById('statAvg').textContent = avgScore > 0 ? avgScore + '%' : '—';
+
+                if (exams.length === 0) {
+                    document.getElementById('tableWrap').innerHTML = `
+        <div class="table-empty">
+          <div class="empty-icon">📝</div>
+          <h3>No exams yet</h3>
+          <p>Create your first AI-powered assessment to get started.</p>
+          <a href="create-exam.html" class="btn btn-primary" style="margin-top:1.25rem">+ Create Exam</a>
+        </div>`;
+                    return;
+                }
+
+                let html = `<table>
+      <thead><tr>
+        <th>Exam</th><th>Created</th><th>Candidates</th><th>Avg Score</th><th>Actions</th>
+      </tr></thead><tbody>`;
+
+                for (const e of exams) {
+                    const date = new Date(e.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    html += `<tr>
+        <td>
+          <div class="exam-title">${esc(e.title)}</div>
+          <div class="exam-date">${e.num_questions} questions · ${e.duration_minutes} min</div>
+        </td>
+        <td><span class="exam-date">${date}</span></td>
+        <td><span class="badge badge-purple">${e.candidate_count}</span></td>
+        <td>${e.candidate_count > 0 ? `<span class="badge badge-green">${e.avg_score}%</span>` : '<span style="color:var(--text3)">—</span>'}</td>
+        <td>
+          <div class="action-btns">
+            <button class="btn-sm" onclick="copyLink('${e.exam_link}', this)">📋 Copy Link</button>
+            <button class="btn-sm" onclick="window.location.href='results.html?slug=${e.slug}'">📊 Results</button>
+          </div>
+        </td>
+      </tr>`;
+                }
+
+                html += '</tbody></table>';
+                document.getElementById('tableWrap').innerHTML = html;
+            } catch (err) {
+                document.getElementById('tableWrap').innerHTML = `
+      <div class="table-empty">
+        <div class="empty-icon">⚠️</div>
+        <h3>Failed to load exams</h3>
+        <p>${esc(err.message)}</p>
+      </div>`;
+            }
+        }
+
+        function copyLink(link, btn) {
+            navigator.clipboard.writeText(link).then(() => {
+                btn.classList.add('copied');
+                btn.textContent = '✓ Copied';
+                showToast('Link copied to clipboard!');
+                setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '📋 Copy Link'; }, 2000);
+            });
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = '✓ ' + msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    </script>
+</body>
+
+</html>

@@ -375,6 +375,62 @@ async def submit_exam(slug: str, request: Request):
     }
 
 
+@app.get("/recruiter/exams")
+async def get_recruiter_exams(email: str = ""):
+    """Return all exams created by a recruiter, with candidate stats"""
+    if not email:
+        raise HTTPException(status_code=400, detail="Email parameter is required")
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT * FROM exams WHERE LOWER(recruiter_email) = LOWER(?) ORDER BY created_at DESC
+    """, (email.strip(),))
+    exams = [dict(row) for row in cursor.fetchall()]
+
+    result = []
+    for exam in exams:
+        slug = exam["slug"]
+        # Count candidates
+        cursor.execute("SELECT COUNT(*) as cnt FROM candidates WHERE exam_slug = ? AND submitted_at IS NOT NULL", (slug,))
+        candidate_count = cursor.fetchone()["cnt"]
+
+        # Calculate average score
+        avg_score = 0
+        if candidate_count > 0:
+            questions = json.loads(exam["questions_json"])
+            mcq_total = sum(1 for q in questions if q.get("type", "MCQ") == "MCQ")
+
+            cursor.execute("""
+                SELECT c.id FROM candidates c WHERE c.exam_slug = ? AND c.submitted_at IS NOT NULL
+            """, (slug,))
+            cand_ids = [r["id"] for r in cursor.fetchall()]
+
+            scores = []
+            for cid in cand_ids:
+                cursor.execute("SELECT SUM(is_correct) as correct FROM answers WHERE candidate_id = ?", (cid,))
+                row = cursor.fetchone()
+                correct = row["correct"] or 0
+                total = exam["num_questions"]
+                scores.append(round(correct / total * 100) if total > 0 else 0)
+            avg_score = round(sum(scores) / len(scores)) if scores else 0
+
+        result.append({
+            "slug": slug,
+            "title": exam["title"],
+            "role_title": exam["role_title"],
+            "num_questions": exam["num_questions"],
+            "duration_minutes": exam["duration_minutes"],
+            "candidate_count": candidate_count,
+            "avg_score": avg_score,
+            "created_at": exam["created_at"],
+            "exam_link": f"{CLOUD_APP_URL.rstrip('/')}/exam/{slug}",
+        })
+
+    conn.close()
+    return {"success": True, "exams": result}
+
+
 @app.get("/recruiter/results/{slug}")
 async def get_recruiter_results(slug: str):
     """Return full results for an exam — all candidates, scores, answers with question details"""
