@@ -2,6 +2,7 @@
 Beat Claude — Cloud Backend
 Handles candidate-facing exam links, MCQ auto-grading, and database storage.
 Communicates with the local backend (via Cloudflare tunnel) for AI processing.
+Includes built-in JWT authentication (no external auth service needed).
 """
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -12,7 +13,9 @@ import secrets
 import hashlib
 import httpx
 import os
-from datetime import datetime
+import jwt
+import bcrypt
+from datetime import datetime, timedelta, timezone
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 
@@ -23,6 +26,8 @@ INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "")
 LOCAL_BACKEND_URL = os.getenv("LOCAL_BACKEND_URL", "http://localhost:8000")
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./exams.db")
 CLOUD_APP_URL = os.getenv("CLOUD_APP_URL", "http://localhost:9000")
+JWT_SECRET = os.getenv("JWT_SECRET", secrets.token_hex(32))
+JWT_EXPIRY_HOURS = 24
 
 # Extract DB path from URL
 DB_PATH = DATABASE_URL.replace("sqlite:///", "") if DATABASE_URL.startswith("sqlite:///") else "exams.db"
@@ -90,6 +95,17 @@ def init_db():
     """)
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_answers_candidate ON answers(candidate_id)")
 
+    # Users table for built-in auth
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)")
+
     conn.commit()
     conn.close()
     print("✅ Cloud database initialized!")
@@ -120,6 +136,50 @@ def generate_slug(length: int = 12) -> str:
     return secrets.token_urlsafe(length)[:length]
 
 
+# ============================================================================
+# AUTH HELPERS
+# ============================================================================
+
+def hash_password(password: str) -> str:
+    """Hash a password using bcrypt"""
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+
+def verify_password(password: str, hashed: str) -> bool:
+    """Verify a password against its bcrypt hash"""
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+
+
+def create_jwt(email: str) -> str:
+    """Create a JWT token with 24h expiry"""
+    payload = {
+        "email": email,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRY_HOURS),
+        "iat": datetime.now(timezone.utc),
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+
+
+def verify_jwt(token: str) -> str:
+    """Verify JWT and return email. Raises HTTPException on failure."""
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        return payload["email"]
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired. Please sign in again.")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token. Please sign in again.")
+
+
+def get_auth_email(request: Request) -> str:
+    """Extract and verify JWT from Authorization header, return email."""
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    token = auth_header[7:]
+    return verify_jwt(token)
+
+
 async def call_local_backend(endpoint: str, payload: dict, timeout: float = 180.0) -> dict:
     """Call the local backend via Cloudflare tunnel"""
     url = f"{LOCAL_BACKEND_URL.rstrip('/')}{endpoint}"
@@ -140,6 +200,74 @@ async def call_local_backend(endpoint: str, payload: dict, timeout: float = 180.
         except Exception:
             pass
         raise HTTPException(status_code=e.response.status_code, detail=detail)
+
+
+# ============================================================================
+# AUTH ROUTES
+# ============================================================================
+
+@app.post("/auth/signup")
+async def auth_signup(request: Request):
+    """Create a new user account and return JWT token"""
+    data = await request.json()
+    email = (data.get("email", "") or "").strip().lower()
+    password = data.get("password", "")
+
+    if not email or "@" not in email:
+        raise HTTPException(status_code=400, detail="Valid email is required")
+    if not password or len(password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Check if email already exists
+    cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+    if cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=400, detail="An account with this email already exists")
+
+    # Create user
+    pw_hash = hash_password(password)
+    cursor.execute("INSERT INTO users (email, password_hash) VALUES (?, ?)", (email, pw_hash))
+    conn.commit()
+    conn.close()
+
+    token = create_jwt(email)
+    return {"success": True, "token": token, "email": email}
+
+
+@app.post("/auth/signin")
+async def auth_signin(request: Request):
+    """Sign in with email + password, return JWT token"""
+    data = await request.json()
+    email = (data.get("email", "") or "").strip().lower()
+    password = data.get("password", "")
+
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="Email and password are required")
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT password_hash FROM users WHERE email = ?", (email,))
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    if not verify_password(password, row["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    token = create_jwt(email)
+    return {"success": True, "token": token, "email": email}
+
+
+@app.get("/auth/me")
+async def auth_me(request: Request):
+    """Verify JWT and return user info"""
+    email = get_auth_email(request)
+    return {"success": True, "email": email}
 
 
 # ============================================================================

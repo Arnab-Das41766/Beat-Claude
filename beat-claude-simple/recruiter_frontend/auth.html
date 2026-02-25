@@ -305,9 +305,10 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ─── UI Functions (defined first so buttons always work) ───
+        const API_BASE = 'https://beat-claude-production.up.railway.app';
+
+        // ─── UI Functions ───
         function switchTab(tab) {
             const tabs = document.querySelectorAll('.tab');
             tabs[0].classList.toggle('active', tab === 'login');
@@ -327,35 +328,27 @@
             document.getElementById('message').className = 'message';
         }
 
-        // ─── Supabase Config ───
-        const SUPABASE_URL = 'https://lvohxrnftwfxfudvnozm.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2b2h4cm5mdHdmeGZ1ZHZub3ptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NDY1NDMsImV4cCI6MjA4NzUyMjU0M30.zKes6I6dxT-1uLxhHQykzSHDjhAZXi1SQgu5ylRTLQg';
-
-        let sb = null;
-        try {
-            sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch (e) {
-            console.error('Supabase init failed:', e);
-            showMessage('Authentication service failed to initialize. Check Supabase credentials in console.');
-        }
-
         // Check if already logged in
-        if (sb) {
-            (async () => {
+        (async () => {
+            const token = localStorage.getItem('bc_token');
+            if (token) {
                 try {
-                    const { data: { session } } = await sb.auth.getSession();
-                    if (session) {
+                    const res = await fetch(`${API_BASE}/auth/me`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
                         window.location.href = 'dashboard.html';
+                        return;
                     }
-                } catch (e) {
-                    console.error('Session check failed:', e);
-                }
-            })();
-        }
+                } catch (e) { }
+                // Token invalid, clear it
+                localStorage.removeItem('bc_token');
+                localStorage.removeItem('bc_email');
+            }
+        })();
 
         async function handleLogin(e) {
             e.preventDefault();
-            if (!sb) { showMessage('Auth service not initialized. Check Supabase credentials.'); return; }
             const btn = document.getElementById('loginBtn');
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
@@ -365,8 +358,16 @@
             hideMessage();
 
             try {
-                const { data, error } = await sb.auth.signInWithPassword({ email, password });
-                if (error) throw error;
+                const res = await fetch(`${API_BASE}/auth/signin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Login failed');
+
+                localStorage.setItem('bc_token', data.token);
+                localStorage.setItem('bc_email', data.email);
                 window.location.href = 'dashboard.html';
             } catch (err) {
                 showMessage(err.message || 'Login failed');
@@ -377,7 +378,6 @@
 
         async function handleSignup(e) {
             e.preventDefault();
-            if (!sb) { showMessage('Auth service not initialized. Check Supabase credentials.'); return; }
             const btn = document.getElementById('signupBtn');
             const email = document.getElementById('signupEmail').value.trim();
             const password = document.getElementById('signupPassword').value;
@@ -393,17 +393,17 @@
             hideMessage();
 
             try {
-                const { data, error } = await sb.auth.signUp({ email, password });
-                if (error) throw error;
+                const res = await fetch(`${API_BASE}/auth/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Signup failed');
 
-                if (data.session) {
-                    window.location.href = 'dashboard.html';
-                } else {
-                    showMessage('Account created! Check your email to confirm, then sign in.', 'success');
-                    btn.disabled = false;
-                    btn.textContent = 'Create Account →';
-                    setTimeout(() => switchTab('login'), 2000);
-                }
+                localStorage.setItem('bc_token', data.token);
+                localStorage.setItem('bc_email', data.email);
+                window.location.href = 'dashboard.html';
             } catch (err) {
                 showMessage(err.message || 'Signup failed');
                 btn.disabled = false;
