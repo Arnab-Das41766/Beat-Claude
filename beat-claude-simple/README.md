@@ -11,28 +11,28 @@ A complete, production-ready AI Hiring SaaS platform that runs entirely locally 
 
 ## Architecture Overview
 
-Beat Claude uses a **split architecture** with two FastAPI backends:
+Beat Claude uses a **hybrid cloud/local architecture** to provide free, private AI analysis:
 
 ```
 ┌────────────────────────────────────┐       ┌──────────────────────────────────┐
-│     LOCAL BACKEND (localhost:8000)  │       │  CLOUD BACKEND (Railway/Render)  │
+│     LOCAL BACKEND (Ollama)          │       │  CLOUD BACKEND (Railway)         │
 │                                    │       │                                  │
-│  ▸ Recruiter dashboard & auth      │  HTTP │  ▸ Shareable exam links          │
-│  ▸ AI question generation (Ollama) │◄─────►│  ▸ Candidate-facing exam page    │
-│  ▸ AI open-ended grading           │       │  ▸ MCQ auto-grading              │
-│  ▸ Full recruiter workflow         │       │  ▸ SQLite database               │
-│                                    │       │  ▸ Results API for recruiters     │
-│  Exposed via Cloudflare Tunnel     │       │  Deployed on Railway (free tier)  │
+│  ▸ AI question generation (Ollama) │  HTTP │  ▸ Recruiter Auth (JWT)          │
+│  ▸ AI open-ended grading           │◄─────►│  ▸ Recruiter Dashboard           │
+│  ▸ Private model execution         │       │  ▸ Exam Link Generation          │
+│                                    │       │  ▸ Candidate Exam Interface      │
+│  Exposed via Cloudflare Tunnel     │       │  ▸ SQLite database (Persistent)  │
 └────────────────────────────────────┘       └──────────────────────────────────┘
          Your Machine                                  Cloud
 ```
 
 **How the flow works:**
-1. Recruiter pastes a job description → local backend generates MCQ questions via local LLM
-2. Cloud backend creates a shareable exam link (e.g., `https://yourapp.railway.app/exam/aB3x9kM2pQ7z`)
-3. Candidate opens the link, fills info, takes the test
-4. MCQs are auto-graded instantly on the cloud; open-ended answers are graded by the local LLM
-5. Recruiter views results on the cloud backend
+1. **Recruiter Auth:** Recruiter signs in/up on the Railway-hosted cloud backend (JWT auth).
+2. **Exam Creation:** Recruiter pastes a job description → Railway calls your **Local Backend** via tunnel → Local Ollama generates MCQ questions.
+3. **Sharing:** Railway creates a public exam link (e.g., `https://yourapp.railway.app/exam/slug`).
+4. **Candidate Test:** Candidate takes the test on the public link; MCQs are auto-graded on the cloud.
+5. **AI Grading:** Open-ended answers are sent back to your local machine for high-quality AI grading.
+6. **Results:** Recruiter views full analytics on the cloud dashboard.
 
 ---
 
