@@ -185,12 +185,13 @@ async def call_local_backend(endpoint: str, payload: dict, timeout: float = 180.
     url = f"{LOCAL_BACKEND_URL.rstrip('/')}{endpoint}"
     headers = {"X-Internal-Key": INTERNAL_API_KEY, "Content-Type": "application/json"}
     try:
-        async with httpx.AsyncClient(timeout=timeout) as client:
+        async with httpx.AsyncClient(timeout=timeout, verify=False, follow_redirects=True) as client:
             resp = await client.post(url, json=payload, headers=headers)
             resp.raise_for_status()
             return resp.json()
-    except httpx.ConnectError:
-        raise HTTPException(status_code=503, detail="Local backend is offline. Please start it and try again.")
+    except httpx.ConnectError as e:
+        print(f"[TUNNEL ERROR] ConnectError to {url}: {e}")
+        raise HTTPException(status_code=503, detail=f"Local backend is offline. Please start it and try again. (Debug: {e})")
     except httpx.TimeoutException:
         raise HTTPException(status_code=504, detail="Local backend timed out. LLM may be processing a large request.")
     except httpx.HTTPStatusError as e:
