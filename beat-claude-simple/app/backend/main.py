@@ -647,7 +647,7 @@ async def _score_open_ended(candidate_id: int, items: list):
 # ─── Static Frontend ─────────────────────────────────────────────────────────
 
 import pathlib
-FRONTEND_DIR = pathlib.Path(__file__).parent.parent / "frontend"
+FRONTEND_DIR = pathlib.Path(__file__).parent / "frontend"
 
 @app.get("/")
 async def root():
