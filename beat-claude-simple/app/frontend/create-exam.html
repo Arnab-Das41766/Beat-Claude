@@ -244,7 +244,6 @@
             border: 1px solid rgba(239, 68, 68, .2)
         }
 
-        /* Loading state */
         .loading-state {
             text-align: center;
             padding: 2rem
@@ -277,7 +276,6 @@
             font-size: .9rem
         }
 
-        /* Success state */
         .success-state {
             text-align: center
         }
@@ -333,7 +331,6 @@
             background: var(--green)
         }
 
-        /* Preview */
         .preview {
             margin-top: 2rem;
             border-top: 1px solid var(--border);
@@ -535,10 +532,11 @@
     </main>
 
     <script>
-        const API_BASE = 'https://beat-claude-production.up.railway.app';
+        const API_BASE = '';
         let userEmail = '';
+        let authReady = false;
 
-        // Auth guard — check JWT token
+        // Auth guard — verify JWT on page load
         (async () => {
             const token = localStorage.getItem('bc_token');
             if (!token) { window.location.href = 'auth.html'; return; }
@@ -550,6 +548,7 @@
                 if (!res.ok) throw new Error('Invalid token');
                 const data = await res.json();
                 userEmail = data.email;
+                authReady = true;
             } catch (e) {
                 localStorage.removeItem('bc_token');
                 localStorage.removeItem('bc_email');
@@ -563,6 +562,12 @@
             const dur = parseInt(document.getElementById('duration').value);
             const errEl = document.getElementById('error');
 
+            if (!authReady) {
+                errEl.textContent = 'Still verifying your session — please wait a moment and try again.';
+                errEl.className = 'message error';
+                return;
+            }
+
             if (jd.length < 30) {
                 errEl.textContent = 'Job description must be at least 30 characters.';
                 errEl.className = 'message error';
@@ -573,10 +578,15 @@
             document.getElementById('formCard').style.display = 'none';
             document.getElementById('loadingCard').style.display = 'block';
 
+            const token = localStorage.getItem('bc_token');
+
             try {
                 const res = await fetch(`${API_BASE}/api/create-exam`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify({
                         job_description: jd,
                         recruiter_email: userEmail,
@@ -586,19 +596,16 @@
                 });
 
                 const data = await res.json();
-
                 if (!res.ok) throw new Error(data.detail || 'Failed to create exam');
 
                 document.getElementById('loadingCard').style.display = 'none';
                 document.getElementById('successCard').style.display = 'block';
                 document.getElementById('examLink').value = data.exam_link;
-
-                // Load the full exam to show preview
                 showQuestionPreview(data.slug);
             } catch (err) {
                 document.getElementById('loadingCard').style.display = 'none';
                 document.getElementById('formCard').style.display = 'block';
-                errEl.textContent = err.message;
+                errEl.textContent = err.message || 'Error connecting to server. Make sure the backend is running at http://localhost:8000';
                 errEl.className = 'message error';
             }
         }
@@ -608,7 +615,6 @@
                 const res = await fetch(`${API_BASE}/recruiter/results/${slug}`);
                 const data = await res.json();
                 const questions = data.questions || [];
-
                 if (questions.length === 0) return;
 
                 let html = '<h3>Generated Questions Preview</h3>';
@@ -616,18 +622,17 @@
                     const type = (q.type || 'MCQ').toUpperCase();
                     const badgeClass = type === 'MCQ' ? 'mcq' : type === 'SCENARIO' ? 'scenario' : 'open';
                     html += `<div class="q-item">
-        <div class="q-header">
-          <span class="q-num">Q${i + 1}</span>
-          <span class="q-badge ${badgeClass}">${type}</span>
-          <span class="q-skill">${esc(q.skill || '')}</span>
-        </div>
-        <div class="q-text">${esc(q.question)}</div>
-      </div>`;
+                        <div class="q-header">
+                            <span class="q-num">Q${i + 1}</span>
+                            <span class="q-badge ${badgeClass}">${type}</span>
+                            <span class="q-skill">${esc(q.skill || '')}</span>
+                        </div>
+                        <div class="q-text">${esc(q.question)}</div>
+                    </div>`;
                 });
-
                 document.getElementById('preview').innerHTML = html;
             } catch (e) {
-                // Preview is optional, don't block success
+                // Preview is optional, silently fail
             }
         }
 
@@ -651,6 +656,7 @@
 
         function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
     </script>
+
 </body>
 
 </html>
